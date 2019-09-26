@@ -204,6 +204,17 @@ class Tado:
         data = self._apiCall(cmd)
         return data
 
+    def getHomeState(self):
+        """Gets current state of Home."""
+        # returns {"presence":"AWAY"} or {"presence":"HOME"}
+        # without an auto assist skill presence is not switched automatically,
+        # but a button is shown in the app. showHomePresenceSwitchButton
+        # is an indicator, that the homeState can be switched
+        # {"presence":"HOME","showHomePresenceSwitchButton":true}
+        cmd = 'state'
+        data = self._apiCall(cmd)
+        return data
+    
     def getCapabilities(self, zone):
         """Gets current capabilities of Zone zone."""
         # pylint: disable=C0103
@@ -355,6 +366,23 @@ class Tado:
         data = self._apiCall(cmd, "PUT", post_data)
         return data
 
+    def setHome(self):
+        """Sets HomeState to HOME """
+        # it seems, this can be set anytime
+        cmd = 'presence'
+        payload = '{"homePresence":"HOME"}'
+        data = self._apiCallPayload(cmd, "PUT", payload)
+        return data
+
+    def setAway(self):
+        """Sets HomeState to AWAY """
+        # this can only be set if everybody left the home and 
+        # showHomePresenceSwitchButton = true
+        cmd = 'presence'
+        payload = '{"homePresence":"AWAY"}'
+        data = self._apiCallPayload(cmd, "PUT", payload)
+        return data
+    
     # Ctor
     def __init__(self, username, password):
         """Performs login and save session cookie."""
