@@ -371,7 +371,7 @@ class Tado:
         # it seems, this can be set anytime
         cmd = 'presence'
         payload = '{"homePresence":"HOME"}'
-        data = self._apiCallPayload(cmd, "PUT", payload)
+        data = self._apiCall(cmd, "PUT", payload)
         return data
 
     def setAway(self):
@@ -380,7 +380,7 @@ class Tado:
         # showHomePresenceSwitchButton = true
         cmd = 'presence'
         payload = '{"homePresence":"AWAY"}'
-        data = self._apiCallPayload(cmd, "PUT", payload)
+        data = self._apiCall(cmd, "PUT", payload)
         return data
     
     # Ctor
