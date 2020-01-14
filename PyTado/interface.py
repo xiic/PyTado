@@ -238,7 +238,7 @@ class Tado:
         try:
             day = datetime.datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
-            print("Incorrect date format, should be YYYY-MM-DD")
+            raise ValueError("Incorrect date format, should be YYYY-MM-DD")
 
         cmd = 'zones/%i/dayReport?date=%s' % (zone, day.strftime('%Y-%m-%d'))
         data = self._apiCall(cmd)
