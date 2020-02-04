@@ -244,6 +244,17 @@ class Tado:
 
         raise Exception('Returned data did not contain "id" : '+str(data))
 
+    def getHistoric(self, zone, date):
+        """Gets historic information on given date for Zone zone."""
+        try:
+            day = datetime.datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError("Incorrect date format, should be YYYY-MM-DD")
+
+        cmd = 'zones/%i/dayReport?date=%s' % (zone, day.strftime('%Y-%m-%d'))
+        data = self._apiCall(cmd)
+        return data
+
     def setTimetable(self, zone, id):
         """Set the Timetable type currently active
            id = 0 : ONE_DAY (MONDAY_TO_SUNDAY)
