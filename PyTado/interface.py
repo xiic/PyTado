@@ -394,6 +394,32 @@ class Tado:
         data = self._apiCall(cmd, "PUT", payload)
         return data
     
+    def getWindowState(self, zone):
+        """Returns the state of the window for Zone zone"""
+        data = self.getState(zone)['openWindow']
+        return {'openWindow' : data}
+
+    def getOpenWindowDetected(self, zone):
+        """Returns whether an open window is detected."""
+        data = self.getState(zone)
+        if "openWindowDetected" in data:
+            return {'openWindowDetected': data['openWindowDetected']}
+        else:
+            return {'openWindowDetected': False}
+
+    def setOpenWindow(self, zone):
+        """Sets the window in Zone zone to open"""
+        # this can only be set if an open window was detected in this zone
+        cmd = 'zones/%i/state/openWindow/activate' % (zone)
+        data = self._apiCall(cmd, "POST", {}, True)
+        return data
+
+    def resetOpenWindow(self, zone):
+        """Sets the window in zone Zone to closed"""
+        cmd = 'zones/%i/state/openWindow' % zone
+        data = self._apiCall(cmd, "DELETE", {}, True)
+        return data
+    
     # Ctor
     def __init__(self, username, password):
         """Performs login and save session cookie."""
