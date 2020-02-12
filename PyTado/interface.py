@@ -326,7 +326,14 @@ class Tado:
         cmd = 'getAppUsersRelativePositions'
         data = self._mobile_apiCall(cmd)
         return data
+    
+    def getMobileDevices(self):
+        """Gets information about mobile devices"""
 
+        cmd = 'mobileDevices'
+        data = self._apiCall(cmd)
+        return data
+    
     def resetZoneOverlay(self, zone):
         """Delete current overlay"""
         # pylint: disable=C0103
