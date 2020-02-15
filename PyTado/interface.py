@@ -36,6 +36,7 @@ class Tado:
     mobi2url = 'https://my.tado.com/mobile/1.9/'
     refresh_token = ''
     refresh_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
+    timeout = 10
 
     # 'Private' methods for use in class, Tado mobile API V1.9.
     def _mobile_apiCall(self, cmd):
@@ -49,7 +50,7 @@ class Tado:
 
         url = '%s%s' % (self.mobi2url, cmd)
         req = urllib.request.Request(url, headers=self.headers)
-        response = self.opener.open(req)
+        response = self.opener.open(req, timeout=self.timeout)
         str_response = response.read().decode('utf-8')
 
         if self._debugCalls:
@@ -85,7 +86,7 @@ class Tado:
                                      method=method,
                                      data=data)
 
-        response = self.opener.open(req)
+        response = self.opener.open(req, timeout=self.timeout)
 
         if self._debugCalls:
             _LOGGER.debug("api call: %s: %s, response %s",
@@ -132,7 +133,7 @@ class Tado:
                                      headers={'Content-Type': 'application/json',
                                               'Referer' : 'https://my.tado.com/'})
 
-        response = self.opener.open(req)
+        response = self.opener.open(req, timeout=self.timeout)
         str_response = response.read().decode('utf-8')
 
         self._setOAuthHeader(json.loads(str_response))
@@ -158,7 +159,7 @@ class Tado:
                                      headers={'Content-Type': 'application/json',
                                               'Referer' : 'https://my.tado.com/'})
 
-        response = self.opener.open(req)
+        response = self.opener.open(req, timeout=self.timeout)
         str_response = response.read().decode('utf-8')
 
         self._setOAuthHeader(json.loads(str_response))
@@ -175,7 +176,7 @@ class Tado:
 
         url = 'https://my.tado.com/api/v2/me'
         req = urllib.request.Request(url, headers=self.headers)
-        response = self.opener.open(req)
+        response = self.opener.open(req, timeout=self.timeout)
         str_response = response.read().decode('utf-8')
         data = json.loads(str_response)
         return data
