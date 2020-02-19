@@ -19,8 +19,8 @@ readme = open(here('README.md')).read()
 requirements = [x.strip() for x in open(here('requirements.txt')).readlines()]
 
 setup(name='python-tado',
-      version='0.2.9',
-      description='PyTado from chrism0dwk, modfied by w.malgadey',
+      version='0.3.0',
+      description='PyTado from chrism0dwk, modfied by w.malgadey, diplix, michaelarnauts, LenhartStephan, splifter, syssi, andersonshatch, Yippy, p0thi',
       long_description=readme,
       keywords='tado',
       author='chrism0dwk, w.malgadey',
