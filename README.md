@@ -27,6 +27,16 @@ Development
 -----------
 This software is at a purely experimental stage.  If you're interested and can write Python, clone the Github repo, drop me a line, and get involved!
 
+Release and publish to pypi.org
+-------------------------------
+see: https://packaging.python.org/tutorials/packaging-projects/
+
+TL:DR;
+* update `version` in `setup.py`
+* `python3 setup.py sdist bdist_wheel`
+* `python3 -m twine upload dist/*`
+
+
 
 Best wishes and a warm winter to all!
 
