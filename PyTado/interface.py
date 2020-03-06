@@ -5,12 +5,10 @@ PyTado interface implementation for mytado.com
 import logging
 import json
 import datetime
-import urllib.request
-import urllib.parse
-import urllib.error
+from requests import Session
+
 
 from enum import IntEnum
-from http.cookiejar import CookieJar
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,16 +47,13 @@ class Tado:
                           cmd)
 
         url = '%s%s' % (self.mobi2url, cmd)
-        req = urllib.request.Request(url, headers=self.headers)
-        response = self.opener.open(req, timeout=self.timeout)
-        str_response = response.read().decode('utf-8')
+        response = self._http_session.request("get", url, headers=self.headers, timeout=self.timeout)
 
         if self._debugCalls:
             _LOGGER.debug("mobile api: %s, response: %s",
-                          cmd, response)
+                          cmd, response.text)
 
-        data = json.loads(str_response)
-        return data
+        return response.json()
 
     # 'Private' methods for use in class, Tado API V2.
     def _apiCall(self, cmd, method="GET", data=None, plain=False):
@@ -77,27 +72,23 @@ class Tado:
             data = json.dumps(data).encode('utf8')
 
         if self._debugCalls:
-            _LOGGER.debug("api call: %s: %s, headers %s, data %s",
-                          method, cmd, headers, data)
+            _LOGGER.debug("api call: %s: %s, headers %s, data %s", method, cmd, headers, data)
 
         url = '%s%i/%s' % (self.api2url, self.id, cmd)
-        req = urllib.request.Request(url,
-                                     headers=headers,
-                                     method=method,
-                                     data=data)
-
-        response = self.opener.open(req, timeout=self.timeout)
+        response = self._http_session.request(method, url, timeout=self.timeout,
+                                    headers=headers,
+                                    data=data)
 
         if self._debugCalls:
             _LOGGER.debug("api call: %s: %s, response %s",
-                          method, cmd, response)
-
-        str_response = response.read().decode('utf-8')
+                          method, cmd, response.text)
+        
+        str_response = response.text
         if str_response is None or str_response == "":
             return
 
-        data = json.loads(str_response)
-        return data
+        return response.json()
+
 
     def _setOAuthHeader(self, data):
         # pylint: disable=C0103
@@ -127,17 +118,12 @@ class Tado:
                 'scope' : 'home.user',
                 'refresh_token' : self.refresh_token}
         # pylint: disable=R0204
-        data = urllib.parse.urlencode(data)
-        url = url + '?' + data
-        req = urllib.request.Request(url, data=json.dumps({}).encode('utf8'), method='POST',
+        response = self._http_session.request("post", url, params=data, timeout=self.timeout, data=json.dumps({}).encode('utf8'),
                                      headers={'Content-Type': 'application/json',
                                               'Referer' : 'https://my.tado.com/'})
 
-        response = self.opener.open(req, timeout=self.timeout)
-        str_response = response.read().decode('utf-8')
-
-        self._setOAuthHeader(json.loads(str_response))
-        return response
+        _LOGGER.info("api call result: %s", response.text)
+        self._setOAuthHeader(response.json())
 
     def _loginV2(self, username, password):
         # pylint: disable=C0103
@@ -153,17 +139,11 @@ class Tado:
                 'scope' : 'home.user',
                 'username' : username}
         # pylint: disable=R0204
-        data = urllib.parse.urlencode(data)
-        url = url + '?' + data
-        req = urllib.request.Request(url, data=json.dumps({}).encode('utf8'), method='POST',
+        response = self._http_session.request("post", url, params=data, timeout=self.timeout, data=json.dumps({}).encode('utf8'),
                                      headers={'Content-Type': 'application/json',
                                               'Referer' : 'https://my.tado.com/'})
 
-        response = self.opener.open(req, timeout=self.timeout)
-        str_response = response.read().decode('utf-8')
-
-        self._setOAuthHeader(json.loads(str_response))
-        return response
+        self._setOAuthHeader(response.json())
 
     def setDebugging(self, debugCalls):
         self._debugCalls = debugCalls
@@ -175,11 +155,7 @@ class Tado:
         # pylint: disable=C0103
 
         url = 'https://my.tado.com/api/v2/me'
-        req = urllib.request.Request(url, headers=self.headers)
-        response = self.opener.open(req, timeout=self.timeout)
-        str_response = response.read().decode('utf-8')
-        data = json.loads(str_response)
-        return data
+        return self._http_session.request("get", url, headers=self.headers, timeout=self.timeout).json()
 
     def getDevices(self):
         """Gets device information."""
@@ -412,15 +388,11 @@ class Tado:
         return data
     
     # Ctor
-    def __init__(self, username, password):
+    def __init__(self, username, password, timeout=10, http_session=None):
         """Performs login and save session cookie."""
         # HTTPS Interface
 
         # pylint: disable=C0103
-        cj = CookieJar()
-
-        self.opener = urllib.request.build_opener(
-            urllib.request.HTTPCookieProcessor(cj),
-            urllib.request.HTTPSHandler())
+        self._http_session = http_session if http_session else Session()
         self._loginV2(username, password)
         self.id = self.getMe()['homes'][0]['id']
