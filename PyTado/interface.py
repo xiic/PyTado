@@ -10,6 +10,7 @@ from requests import Session
 
 from enum import IntEnum
 
+from .zone import TadoZone
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -172,6 +173,10 @@ class Tado:
         cmd = 'zones'
         data = self._apiCall(cmd)
         return data
+
+    def getZoneState(self, zone):
+        """Gets current state of Zone as a TadoZone object."""
+        return TadoZone(self.getState(zone), zone)
 
     def getState(self, zone):
         """Gets current state of Zone zone."""
