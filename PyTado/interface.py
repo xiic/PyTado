@@ -351,17 +351,14 @@ class Tado:
 
     def setHome(self):
         """Sets HomeState to HOME """
-        # it seems, this can be set anytime
-        cmd = 'presence'
+        cmd = 'presenceLock'
         payload = { "homePresence": "HOME" }
         data = self._apiCall(cmd, "PUT", payload)
         return data
 
     def setAway(self):
         """Sets HomeState to AWAY """
-        # this can only be set if everybody left the home and 
-        # showHomePresenceSwitchButton = true
-        cmd = 'presence'
+        cmd = 'presenceLock'
         payload = { "homePresence": "AWAY" }
         data = self._apiCall(cmd, "PUT", payload)
         return data
