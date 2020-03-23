@@ -22,7 +22,7 @@ def load_fixture(filename):
         return fptr.read()
 
 
-async def test_ac_issue_32294_heat_mode():
+def test_ac_issue_32294_heat_mode():
     """Test smart ac cool mode."""
     ac_issue_32294_heat_mode = _mock_tado_climate_zone_from_fixture(
         "ac_issue_32294.heat_mode.json"
@@ -57,7 +57,7 @@ async def test_ac_issue_32294_heat_mode():
     assert ac_issue_32294_heat_mode.precision == 0.1
 
 
-async def test_smartac3_smart_mode():
+def test_smartac3_smart_mode():
     """Test smart ac smart mode."""
     smartac3_smart_mode = _mock_tado_climate_zone_from_fixture(
         "smartac3.smart_mode.json"
@@ -89,7 +89,7 @@ async def test_smartac3_smart_mode():
     assert smartac3_smart_mode.precision == 0.1
 
 
-async def test_smartac3_cool_mode():
+def test_smartac3_cool_mode():
     """Test smart ac cool mode."""
     smartac3_cool_mode = _mock_tado_climate_zone_from_fixture("smartac3.cool_mode.json")
     assert smartac3_cool_mode.preparation is False
@@ -119,7 +119,7 @@ async def test_smartac3_cool_mode():
     assert smartac3_cool_mode.precision == 0.1
 
 
-async def test_smartac3_auto_mode():
+def test_smartac3_auto_mode():
     """Test smart ac cool mode."""
     smartac3_auto_mode = _mock_tado_climate_zone_from_fixture("smartac3.auto_mode.json")
     assert smartac3_auto_mode.preparation is False
@@ -149,7 +149,7 @@ async def test_smartac3_auto_mode():
     assert smartac3_auto_mode.precision == 0.1
 
 
-async def test_smartac3_dry_mode():
+def test_smartac3_dry_mode():
     """Test smart ac cool mode."""
     smartac3_dry_mode = _mock_tado_climate_zone_from_fixture("smartac3.dry_mode.json")
     assert smartac3_dry_mode.preparation is False
@@ -179,7 +179,7 @@ async def test_smartac3_dry_mode():
     assert smartac3_dry_mode.precision == 0.1
 
 
-async def test_smartac3_fan_mode():
+def test_smartac3_fan_mode():
     """Test smart ac cool mode."""
     smartac3_fan_mode = _mock_tado_climate_zone_from_fixture("smartac3.fan_mode.json")
     assert smartac3_fan_mode.preparation is False
@@ -209,7 +209,7 @@ async def test_smartac3_fan_mode():
     assert smartac3_fan_mode.precision == 0.1
 
 
-async def test_smartac3_heat_mode():
+def test_smartac3_heat_mode():
     """Test smart ac cool mode."""
     smartac3_heat_mode = _mock_tado_climate_zone_from_fixture("smartac3.heat_mode.json")
     assert smartac3_heat_mode.preparation is False
@@ -239,7 +239,7 @@ async def test_smartac3_heat_mode():
     assert smartac3_heat_mode.precision == 0.1
 
 
-async def test_smartac3_hvac_off():
+def test_smartac3_hvac_off():
     """Test smart ac cool mode."""
     smartac3_hvac_off = _mock_tado_climate_zone_from_fixture("smartac3.hvac_off.json")
     assert smartac3_hvac_off.preparation is False
@@ -269,7 +269,7 @@ async def test_smartac3_hvac_off():
     assert smartac3_hvac_off.precision == 0.1
 
 
-async def test_smartac3_manual_off():
+def test_smartac3_manual_off():
     """Test smart ac cool mode."""
     smartac3_manual_off = _mock_tado_climate_zone_from_fixture(
         "smartac3.manual_off.json"
@@ -301,7 +301,7 @@ async def test_smartac3_manual_off():
     assert smartac3_manual_off.precision == 0.1
 
 
-async def test_smartac3_offline():
+def test_smartac3_offline():
     """Test smart ac cool mode."""
     smartac3_offline = _mock_tado_climate_zone_from_fixture("smartac3.offline.json")
     assert smartac3_offline.preparation is False
@@ -331,7 +331,7 @@ async def test_smartac3_offline():
     assert smartac3_offline.precision == 0.1
 
 
-async def test_hvac_action_heat():
+def test_hvac_action_heat():
     """Test smart ac cool mode."""
     hvac_action_heat = _mock_tado_climate_zone_from_fixture("hvac_action_heat.json")
     assert hvac_action_heat.preparation is False
@@ -361,7 +361,7 @@ async def test_hvac_action_heat():
     assert hvac_action_heat.precision == 0.1
 
 
-async def test_smartac3_turning_off():
+def test_smartac3_turning_off():
     """Test smart ac cool mode."""
     smartac3_turning_off = _mock_tado_climate_zone_from_fixture(
         "smartac3.turning_off.json"
@@ -393,7 +393,7 @@ async def test_smartac3_turning_off():
     assert smartac3_turning_off.precision == 0.1
 
 
-async def test_tadov2_heating_auto_mode():
+def test_tadov2_heating_auto_mode():
     """Test tadov2 heating auto mode."""
     mode = _mock_tado_climate_zone_from_fixture("tadov2.heating.auto_mode.json")
     assert mode.preparation is False
@@ -423,7 +423,7 @@ async def test_tadov2_heating_auto_mode():
     assert mode.precision == 0.1
 
 
-async def test_tadov2_heating_manual_mode():
+def test_tadov2_heating_manual_mode():
     """Test tadov2 heating manual mode."""
     mode = _mock_tado_climate_zone_from_fixture("tadov2.heating.manual_mode.json")
     assert mode.preparation is False
@@ -453,7 +453,7 @@ async def test_tadov2_heating_manual_mode():
     assert mode.precision == 0.1
 
 
-async def test_tadov2_heating_off_mode():
+def test_tadov2_heating_off_mode():
     """Test tadov2 heating off mode."""
     mode = _mock_tado_climate_zone_from_fixture("tadov2.heating.off_mode.json")
     assert mode.preparation is False
@@ -483,7 +483,7 @@ async def test_tadov2_heating_off_mode():
     assert mode.precision == 0.1
 
 
-async def test_tadov2_water_heater_auto_mode():
+def test_tadov2_water_heater_auto_mode():
     """Test tadov2 water heater auto mode."""
     mode = _mock_tado_climate_zone_from_fixture("tadov2.water_heater.auto_mode.json")
     assert mode.preparation is False
@@ -513,7 +513,7 @@ async def test_tadov2_water_heater_auto_mode():
     assert mode.precision == 0.1
 
 
-async def test_tadov2_water_heater_manual_mode():
+def test_tadov2_water_heater_manual_mode():
     """Test tadov2 water heater manual mode."""
     mode = _mock_tado_climate_zone_from_fixture("tadov2.water_heater.manual_mode.json")
     assert mode.preparation is False
@@ -543,7 +543,7 @@ async def test_tadov2_water_heater_manual_mode():
     assert mode.precision == 0.1
 
 
-async def test_tadov2_water_heater_off_mode():
+def test_tadov2_water_heater_off_mode():
     """Test tadov2 water heater off mode."""
     mode = _mock_tado_climate_zone_from_fixture("tadov2.water_heater.off_mode.json")
     assert mode.preparation is False
