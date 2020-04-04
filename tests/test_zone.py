@@ -10,7 +10,10 @@ from PyTado.interface import Tado
 def _mock_tado_climate_zone_from_fixture(filename):
     with patch("PyTado.interface.Tado._loginV2"), patch(
         "PyTado.interface.Tado.getMe"
-    ), patch("PyTado.interface.Tado.getState", return_value=json.loads(load_fixture(filename))):
+    ), patch(
+        "PyTado.interface.Tado.getState",
+        return_value=json.loads(load_fixture(filename)),
+    ):
         tado = Tado("my@username.com", "mypassword")
         return tado.getZoneState(1)
 
@@ -55,6 +58,7 @@ def test_ac_issue_32294_heat_mode():
     assert ac_issue_32294_heat_mode.target_temp == 25.0
     assert ac_issue_32294_heat_mode.available is True
     assert ac_issue_32294_heat_mode.precision == 0.1
+    assert ac_issue_32294_heat_mode.current_swing_mode == "OFF"
 
 
 def test_smartac3_smart_mode():
@@ -87,6 +91,7 @@ def test_smartac3_smart_mode():
     assert smartac3_smart_mode.target_temp == 20.0
     assert smartac3_smart_mode.available is True
     assert smartac3_smart_mode.precision == 0.1
+    assert smartac3_smart_mode.current_swing_mode == "OFF"
 
 
 def test_smartac3_cool_mode():
@@ -117,6 +122,7 @@ def test_smartac3_cool_mode():
     assert smartac3_cool_mode.target_temp == 17.78
     assert smartac3_cool_mode.available is True
     assert smartac3_cool_mode.precision == 0.1
+    assert smartac3_cool_mode.current_swing_mode == "OFF"
 
 
 def test_smartac3_auto_mode():
@@ -147,6 +153,7 @@ def test_smartac3_auto_mode():
     assert smartac3_auto_mode.target_temp is None
     assert smartac3_auto_mode.available is True
     assert smartac3_auto_mode.precision == 0.1
+    assert smartac3_auto_mode.current_swing_mode == "OFF"
 
 
 def test_smartac3_dry_mode():
@@ -177,6 +184,7 @@ def test_smartac3_dry_mode():
     assert smartac3_dry_mode.target_temp is None
     assert smartac3_dry_mode.available is True
     assert smartac3_dry_mode.precision == 0.1
+    assert smartac3_dry_mode.current_swing_mode == "OFF"
 
 
 def test_smartac3_fan_mode():
@@ -207,10 +215,11 @@ def test_smartac3_fan_mode():
     assert smartac3_fan_mode.target_temp is None
     assert smartac3_fan_mode.available is True
     assert smartac3_fan_mode.precision == 0.1
+    assert smartac3_fan_mode.current_swing_mode == "OFF"
 
 
 def test_smartac3_heat_mode():
-    """Test smart ac cool mode."""
+    """Test smart ac heat mode."""
     smartac3_heat_mode = _mock_tado_climate_zone_from_fixture("smartac3.heat_mode.json")
     assert smartac3_heat_mode.preparation is False
     assert smartac3_heat_mode.open_window is False
@@ -237,6 +246,40 @@ def test_smartac3_heat_mode():
     assert smartac3_heat_mode.target_temp == 16.11
     assert smartac3_heat_mode.available is True
     assert smartac3_heat_mode.precision == 0.1
+    assert smartac3_heat_mode.current_swing_mode == "OFF"
+
+
+def test_smartac3_with_swing():
+    """Test smart with swing mode."""
+    smartac3_with_swing = _mock_tado_climate_zone_from_fixture(
+        "smartac3.with_swing.json"
+    )
+    assert smartac3_with_swing.preparation is False
+    assert smartac3_with_swing.open_window is False
+    assert smartac3_with_swing.open_window_attr == {}
+    assert smartac3_with_swing.current_temp == 20.88
+    assert smartac3_with_swing.current_temp_timestamp == "2020-03-28T02:09:27.830Z"
+    assert smartac3_with_swing.connection is None
+    assert smartac3_with_swing.tado_mode == "HOME"
+    assert smartac3_with_swing.overlay_active is False
+    assert smartac3_with_swing.overlay_termination_type is None
+    assert smartac3_with_swing.current_humidity == 42.3
+    assert smartac3_with_swing.current_humidity_timestamp == "2020-03-28T02:09:27.830Z"
+    assert smartac3_with_swing.ac_power_timestamp == "2020-03-27T23:02:22.260Z"
+    assert smartac3_with_swing.heating_power_timestamp is None
+    assert smartac3_with_swing.ac_power == "ON"
+    assert smartac3_with_swing.heating_power is None
+    assert smartac3_with_swing.heating_power_percentage is None
+    assert smartac3_with_swing.is_away is False
+    assert smartac3_with_swing.power == "ON"
+    assert smartac3_with_swing.current_hvac_action == "HEATING"
+    assert smartac3_with_swing.current_fan_speed == "AUTO"
+    assert smartac3_with_swing.link == "ONLINE"
+    assert smartac3_with_swing.current_hvac_mode == "SMART_SCHEDULE"
+    assert smartac3_with_swing.target_temp == 20.0
+    assert smartac3_with_swing.available is True
+    assert smartac3_with_swing.precision == 0.1
+    assert smartac3_with_swing.current_swing_mode == "ON"
 
 
 def test_smartac3_hvac_off():
@@ -267,6 +310,7 @@ def test_smartac3_hvac_off():
     assert smartac3_hvac_off.target_temp is None
     assert smartac3_hvac_off.available is True
     assert smartac3_hvac_off.precision == 0.1
+    assert smartac3_hvac_off.current_swing_mode == "OFF"
 
 
 def test_smartac3_manual_off():
@@ -299,6 +343,7 @@ def test_smartac3_manual_off():
     assert smartac3_manual_off.target_temp is None
     assert smartac3_manual_off.available is True
     assert smartac3_manual_off.precision == 0.1
+    assert smartac3_manual_off.current_swing_mode == "OFF"
 
 
 def test_smartac3_offline():
@@ -329,6 +374,7 @@ def test_smartac3_offline():
     assert smartac3_offline.target_temp == 17.78
     assert smartac3_offline.available is False
     assert smartac3_offline.precision == 0.1
+    assert smartac3_offline.current_swing_mode == "OFF"
 
 
 def test_hvac_action_heat():
@@ -359,6 +405,7 @@ def test_hvac_action_heat():
     assert hvac_action_heat.target_temp == 16.11
     assert hvac_action_heat.available is True
     assert hvac_action_heat.precision == 0.1
+    assert hvac_action_heat.current_swing_mode == "OFF"
 
 
 def test_smartac3_turning_off():
@@ -391,6 +438,7 @@ def test_smartac3_turning_off():
     assert smartac3_turning_off.target_temp is None
     assert smartac3_turning_off.available is True
     assert smartac3_turning_off.precision == 0.1
+    assert smartac3_turning_off.current_swing_mode == "OFF"
 
 
 def test_tadov2_heating_auto_mode():
@@ -421,6 +469,7 @@ def test_tadov2_heating_auto_mode():
     assert mode.target_temp == 20.0
     assert mode.available is True
     assert mode.precision == 0.1
+    assert mode.current_swing_mode == "OFF"
 
 
 def test_tadov2_heating_manual_mode():
@@ -451,6 +500,7 @@ def test_tadov2_heating_manual_mode():
     assert mode.target_temp == 20.5
     assert mode.available is True
     assert mode.precision == 0.1
+    assert mode.current_swing_mode == "OFF"
 
 
 def test_tadov2_heating_off_mode():
@@ -481,6 +531,7 @@ def test_tadov2_heating_off_mode():
     assert mode.target_temp is None
     assert mode.available is True
     assert mode.precision == 0.1
+    assert mode.current_swing_mode == "OFF"
 
 
 def test_tadov2_water_heater_auto_mode():
@@ -511,6 +562,7 @@ def test_tadov2_water_heater_auto_mode():
     assert mode.target_temp == 65.00
     assert mode.available is True
     assert mode.precision == 0.1
+    assert mode.current_swing_mode == "OFF"
 
 
 def test_tadov2_water_heater_manual_mode():
@@ -541,6 +593,7 @@ def test_tadov2_water_heater_manual_mode():
     assert mode.target_temp == 55.00
     assert mode.available is True
     assert mode.precision == 0.1
+    assert mode.current_swing_mode == "OFF"
 
 
 def test_tadov2_water_heater_off_mode():
@@ -571,3 +624,4 @@ def test_tadov2_water_heater_off_mode():
     assert mode.target_temp is None
     assert mode.available is True
     assert mode.precision == 0.1
+    assert mode.current_swing_mode == "OFF"
