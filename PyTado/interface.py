@@ -30,7 +30,6 @@ class Tado:
     _debugCalls = False
 
     # Instance-wide constant info
-    headers = {'Referer' : 'https://my.tado.com/'}
     api2url = 'https://my.tado.com/api/v2/homes/'
     mobi2url = 'https://my.tado.com/mobile/1.9/'
     refresh_token = ''
@@ -398,5 +397,6 @@ class Tado:
 
         # pylint: disable=C0103
         self._http_session = http_session if http_session else Session()
+        self.headers = {'Referer' : 'https://my.tado.com/'}
         self._loginV2(username, password)
         self.id = self.getMe()['homes'][0]['id']
