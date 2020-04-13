@@ -51,6 +51,7 @@ class TadoZone:
         self._overlay_termination_type = None
         self._preparation = None
         self._open_window = None
+        self._open_window_detected = None
         self._open_window_attr = None
         self._precision = DEFAULT_TADO_PRECISION
         self.update_data(data)
@@ -64,6 +65,11 @@ class TadoZone:
     def open_window(self):
         """Window is open."""
         return self._open_window
+
+    @property
+    def open_window_detected(self):
+        """Window is opened."""
+        return self._open_window_detected
 
     @property
     def open_window_attr(self):
@@ -266,6 +272,7 @@ class TadoZone:
 
         self._preparation = "preparation" in data and data["preparation"] is not None
         self._open_window = "openWindow" in data and data["openWindow"] is not None
+        self._open_window_detected = "openWindowDetected" in data and data["openWindowDetected"] is True
         self._open_window_attr = data["openWindow"] if self._open_window else {}
 
         if "activityDataPoints" in data:
