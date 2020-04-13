@@ -272,7 +272,9 @@ class TadoZone:
 
         self._preparation = "preparation" in data and data["preparation"] is not None
         self._open_window = "openWindow" in data and data["openWindow"] is not None
-        self._open_window_detected = "openWindowDetected" in data and data["openWindowDetected"] is True
+        self._open_window_detected = (
+            "openWindowDetected" in data and data["openWindowDetected"] is True
+        )
         self._open_window_attr = data["openWindow"] if self._open_window else {}
 
         if "activityDataPoints" in data:
