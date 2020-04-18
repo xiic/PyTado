@@ -32,8 +32,6 @@ class Tado:
     # Instance-wide constant info
     api2url = 'https://my.tado.com/api/v2/homes/'
     mobi2url = 'https://my.tado.com/mobile/1.9/'
-    refresh_token = ''
-    refresh_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
     timeout = 10
 
     # 'Private' methods for use in class, Tado mobile API V1.9.
@@ -394,6 +392,9 @@ class Tado:
     def __init__(self, username, password, timeout=10, http_session=None):
         """Performs login and save session cookie."""
         # HTTPS Interface
+        self.headers = {'Referer' : 'https://my.tado.com/'}
+        self.refresh_token = ''
+        self.refresh_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
         # pylint: disable=C0103
         self._http_session = http_session if http_session else Session()
