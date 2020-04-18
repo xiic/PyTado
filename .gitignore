@@ -5,10 +5,9 @@
 .project
 .pydevproject
 
-PyTado.egg-info
+python_tado.egg-info
 build/
 dist/
-pytado.egg-info
 
 PyCharms
 .idea/
