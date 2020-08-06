@@ -290,6 +290,14 @@ class Tado:
         data = self._apiCall(cmd)
         return data
 
+    def getAirComfort(self):
+        """Gets air quality information"""
+        # pylint: disable=C0103
+
+        cmd = 'airComfort'
+        data = self._apiCall(cmd)
+        return data
+
     def getAppUsers(self):
         """Gets getAppUsers data"""
         # pylint: disable=C0103
