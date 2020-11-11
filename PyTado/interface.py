@@ -30,7 +30,6 @@ class Tado:
     _debugCalls = False
 
     # Instance-wide constant info
-    #api2url = 'https://my.tado.com/api/v2/homes/'
     api2url = 'https://my.tado.com/api/v2/'
     mobi2url = 'https://my.tado.com/mobile/1.9/'
     timeout = 10
@@ -293,6 +292,14 @@ class Tado:
         # pylint: disable=C0103
 
         cmd = 'weather'
+        data = self._apiCall(cmd)
+        return data
+    
+    def getAirComfort(self):
+        """Gets air quality information"""
+        # pylint: disable=C0103
+
+        cmd = 'airComfort'
         data = self._apiCall(cmd)
         return data
 
