@@ -337,7 +337,7 @@ class Tado:
 
         post_data = {
             "setting": {"type": deviceType, "power": power},
-            "termination": {"type": overlayMode},
+            "termination": {"typeSkillBasedApp": overlayMode},
         }
 
         if setTemp is not None:
