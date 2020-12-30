@@ -115,6 +115,8 @@ class Tado:
                 'grant_type' : 'refresh_token',
                 'scope' : 'home.user',
                 'refresh_token' : self.refresh_token}
+        self._http_session.close()
+        self._http_session = Session()
         # pylint: disable=R0204
         response = self._http_session.request("post", url, params=data, timeout=self.timeout, data=json.dumps({}).encode('utf8'),
                                      headers={'Content-Type': 'application/json',
