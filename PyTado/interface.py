@@ -30,9 +30,11 @@ class Tado:
     _debugCalls = False
 
     # Instance-wide constant info
-    api2url = 'https://my.tado.com/api/v2/homes/'
+    api2url = 'https://my.tado.com/api/v2/'
     mobi2url = 'https://my.tado.com/mobile/1.9/'
     timeout = 10
+    HOME_DOMAIN = 'homes'
+    DEVICE_DOMAIN = 'devices'
 
     # 'Private' methods for use in class, Tado mobile API V1.9.
     def _mobile_apiCall(self, cmd):
@@ -54,7 +56,7 @@ class Tado:
         return response.json()
 
     # 'Private' methods for use in class, Tado API V2.
-    def _apiCall(self, cmd, method="GET", data=None, plain=False):
+    def _apiCall(self, cmd, method="GET", data=None, plain=False, domain=HOME_DOMAIN, device_id=None):
         # pylint: disable=C0103
 
         self._refresh_token()
@@ -71,8 +73,11 @@ class Tado:
 
         if self._debugCalls:
             _LOGGER.debug("api call: %s: %s, headers %s, data %s", method, cmd, headers, data)
-
-        url = '%s%i/%s' % (self.api2url, self.id, cmd)
+            
+        if domain == self.DEVICE_DOMAIN:
+            url = '%s%s/%s/%s' % (self.api2url, domain, device_id, cmd)
+        else:
+            url = '%s%s/%i/%s' % (self.api2url, domain, self.id, cmd)
         response = self._http_session.request(method, url, timeout=self.timeout,
                                     headers=headers,
                                     data=data)
@@ -122,7 +127,7 @@ class Tado:
                                      headers={'Content-Type': 'application/json',
                                               'Referer' : 'https://my.tado.com/'})
 
-        _LOGGER.debug("api call result: %s", response.text)
+        _LOGGER.info("api call result: %s", response.text)
         self._setOAuthHeader(response.json())
 
     def _loginV2(self, username, password):
@@ -291,7 +296,7 @@ class Tado:
         cmd = 'weather'
         data = self._apiCall(cmd)
         return data
-
+    
     def getAirComfort(self):
         """Gets air quality information"""
         # pylint: disable=C0103
@@ -398,6 +403,19 @@ class Tado:
         data = self._apiCall(cmd, "DELETE", {}, True)
         return data
     
+    def getDeviceInfo(self, device_id, cmd=''):
+        """
+        Gets information about devices
+        with option to get specific info i.e. cmd='temperatureOffset'    
+        """
+        data = self._apiCall(cmd=cmd, domain=self.DEVICE_DOMAIN, device_id=device_id)
+        return data
+    
+    def setTempOffset(self, device_id, offset=0):
+        offset_data = {"celsius":offset}
+        data = self._apiCall(cmd='temperatureOffset', method='PUT', data=offset_data, domain=self.DEVICE_DOMAIN, device_id=device_id)
+        return data
+    
     # Ctor
     def __init__(self, username, password, timeout=10, http_session=None):
         """Performs login and save session cookie."""
@@ -411,3 +429,4 @@ class Tado:
         self.headers = {'Referer' : 'https://my.tado.com/'}
         self._loginV2(username, password)
         self.id = self.getMe()['homes'][0]['id']
+
