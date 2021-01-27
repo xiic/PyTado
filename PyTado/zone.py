@@ -333,6 +333,6 @@ class TadoZone:
         
         if "terminationCondition" in data:
             self._default_overlay_termination_type = data["terminationCondition"].get('type',None)
-            self._default_overlay_termination_duration = data["durationInSeconds"].get('type',None)
+            self._default_overlay_termination_duration = data["terminationCondition"].get('durationInSeconds',None)
             
             
