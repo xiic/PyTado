@@ -187,7 +187,7 @@ class Tado:
         # pylint: disable=C0103
 
         cmd = 'zones/%i/state' % zone
-        data = self._apiCall(cmd)
+        data = {**self._apiCall(cmd), self.getZoneOverlayDefault(zone)}
         return data
 
     def getHomeState(self):

@@ -54,6 +54,8 @@ class TadoZone:
         self._open_window_detected = None
         self._open_window_attr = None
         self._precision = DEFAULT_TADO_PRECISION
+        self._default_overlay_termination_type = None
+        self._default_overlay_termination_duration = None
         self.update_data(data)
 
     @property
@@ -190,6 +192,16 @@ class TadoZone:
     def available(self):
         """Device is available and link is up."""
         return self._available
+        
+    @property
+    def default_overlay_termination_type(self):
+        """Zone default overlay type."""
+        return self._default_overlay_termination_type
+        
+    @property
+    def default_overlay_termination_duration(self):
+        """Zone default overlay duration."""
+        return self._default_overlay_termination_duration
 
     def update_data(self, data):
         """Handle update callbacks."""
@@ -318,3 +330,9 @@ class TadoZone:
             data["connectionState"]["value"] if "connectionState" in data else None
         )
         self._available = self._link != CONST_LINK_OFFLINE
+        
+        if "terminationCondition" in data:
+            self._default_overlay_termination_type = data["terminationCondition"].get('type',None)
+            self._default_overlay_termination_duration = data["durationInSeconds"].get('type',None)
+            
+            
