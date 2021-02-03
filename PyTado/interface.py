@@ -187,7 +187,7 @@ class Tado:
         # pylint: disable=C0103
 
         cmd = 'zones/%i/state' % zone
-        data = self._apiCall(cmd)
+        data = {**self._apiCall(cmd), **self.getZoneOverlayDefault(zone)}
         return data
 
     def getHomeState(self):
@@ -362,6 +362,12 @@ class Tado:
 
         data = self._apiCall(cmd, "PUT", post_data)
         return data
+        
+    def getZoneOverlayDefault(self, zone):
+        """Get current overlay default settings for zone."""
+        cmd = 'zones/%i/defaultOverlay' % zone
+        data = self._apiCall(cmd)
+        return data     
 
     def setHome(self):
         """Sets HomeState to HOME """
@@ -411,8 +417,9 @@ class Tado:
         data = self._apiCall(cmd=cmd, domain=self.DEVICE_DOMAIN, device_id=device_id)
         return data
     
-    def setTempOffset(self, device_id, offset=0):
-        offset_data = {"celsius":offset}
+    def setTempOffset(self, device_id, offset=0, measure="celsius"):
+        """Set the Temperature offset on the device."""
+        offset_data = {measure:offset}
         data = self._apiCall(cmd='temperatureOffset', method='PUT', data=offset_data, domain=self.DEVICE_DOMAIN, device_id=device_id)
         return data
     
