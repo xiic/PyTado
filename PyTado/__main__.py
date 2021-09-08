@@ -24,6 +24,11 @@ def get_state(args):
     zone = tado_client.getState(t,int(args.zone))
     print(zone)
 
+def get_states(args):
+    t = log_in(args.email, args.password)
+    zone = tado_client.getZoneStates(t)
+    print(zone)
+
 def get_capabilities(args):
     t = log_in(args.email, args.password)
     capabilities = tado_client.getCapabilities(t,int(args.zone))
@@ -59,6 +64,9 @@ def main():
     start_activity_parser = subparsers.add_parser('get_state', help='Get state of zone.')
     start_activity_parser.add_argument('--zone', help='Zone to get the state of.')
     start_activity_parser.set_defaults(func=get_state)
+
+    start_activity_parser = subparsers.add_parser('get_states', help='Get states of all zones.')
+    start_activity_parser.set_defaults(func=get_states)
 
     start_activity_parser = subparsers.add_parser('get_capabilities', help='Get capabilities of zone.')
     start_activity_parser.add_argument('--zone', help='Zone to get the capabilities of.')

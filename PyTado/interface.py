@@ -182,6 +182,14 @@ class Tado:
         """Gets current state of Zone as a TadoZone object."""
         return TadoZone(self.getState(zone), zone)
 
+    def getZoneStates(self):
+        """Gets current states of all zones."""
+        # pylint: disable=C0103
+
+        cmd = 'zoneStates'
+        data = self._apiCall(cmd)
+        return data
+
     def getState(self, zone):
         """Gets current state of Zone zone."""
         # pylint: disable=C0103
