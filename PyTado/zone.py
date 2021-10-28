@@ -49,6 +49,7 @@ class TadoZone:
         self._tado_mode = None
         self._overlay_active = None
         self._overlay_termination_type = None
+        self._overlay_termination_timestamp = None
         self._preparation = None
         self._open_window = None
         self._open_window_detected = None
@@ -107,6 +108,11 @@ class TadoZone:
     def overlay_termination_type(self):
         """Overlay termination type (what happens when period ends)."""
         return self._overlay_termination_type
+
+    @property
+    def overlay_termination_time(self):
+        """Overlay termination time."""
+        return self._overlay_termination_timestamp
 
     @property
     def current_humidity(self):
@@ -317,12 +323,14 @@ class TadoZone:
         # If there is no overlay
         # then we are running the smart schedule
         self._overlay_termination_type = None
+        self._overlay_termination_timestamp = None
         if "overlay" in data and data["overlay"] is not None:
             if (
                 "termination" in data["overlay"]
                 and "type" in data["overlay"]["termination"]
             ):
                 self._overlay_termination_type = data["overlay"]["termination"]["type"]
+                self._overlay_termination_timestamp = data["overlay"]["termination"].get('expiry',None)
         else:
             self._current_hvac_mode = CONST_MODE_SMART_SCHEDULE
 
