@@ -370,7 +370,7 @@ class Tado:
 
         data = self._apiCall(cmd, "PUT", post_data)
         return data
-        
+
     def getZoneOverlayDefault(self, zone):
         """Get current overlay default settings for zone."""
         cmd = 'zones/%i/defaultOverlay' % zone
@@ -390,7 +390,13 @@ class Tado:
         payload = { "homePresence": "AWAY" }
         data = self._apiCall(cmd, "PUT", payload)
         return data
-    
+
+    def setAuto(self):
+        """Sets HomeState to AUTO """
+        cmd = 'presenceLock'
+        data = self._apiCall(cmd, "DELETE")
+        return data
+
     def getWindowState(self, zone):
         """Returns the state of the window for Zone zone"""
         data = self.getState(zone)['openWindow']
