@@ -11,6 +11,7 @@ from requests import Session
 from enum import IntEnum
 
 from .zone import TadoZone
+from .exceptions import TadoNotSupportedException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +28,12 @@ class Tado:
         THREE_DAY = 1
         SEVEN_DAY = 2
 
+    # Instance-wide variables
     _debugCalls = False
+
+    # Track whether the user's Tado instance supports auto-geofencing, 
+    # set to None until explicitly set
+    _autoGeofencingSupported = None
 
     # Instance-wide constant info
     api2url = 'https://my.tado.com/api/v2/'
@@ -205,10 +211,41 @@ class Tado:
         # but a button is shown in the app. showHomePresenceSwitchButton
         # is an indicator, that the homeState can be switched
         # {"presence":"HOME","showHomePresenceSwitchButton":true}
+        # With an auto assist skill, showSwitchToAutoGeofencingButton is
+        # present when geofencing has been disabled due to the user selecting
+        # a mode manually:
+        # {'presence': 'HOME', 'presenceLocked': False, 
+        # 'showSwitchToAutoGeofencingButton': True}
+        # With an auto assist skill, showSwitchToAutoGeofencingButton is NOT
+        # present when geofencing has been enabled:
+        # {'presence': 'HOME', 'presenceLocked': True}
+        # In both scenarios with the auto assist skill, 'presenceLocked' 
+        # indicates whether presence is current locked (manually set) to 
+        # HOME or AWAY or not locked (automatically set based on geolocation)
         cmd = 'state'
         data = self._apiCall(cmd)
+
+        # Check whether Auto Geofencing is permitted via the presence of
+        # showSwitchToAutoGeofencingButton or currently enabled via the
+        # presence of presenceLocked = False
+        if "showSwitchToAutoGeofencingButton" in data:
+            self._autoGeofencingSupported = data['showSwitchToAutoGeofencingButton']
+        elif "presenceLocked" in data:
+            if not data['presenceLocked']:
+                self._autoGeofencingSupported = True
+            else:
+                self._autoGeofencingSupported = False
+        else:
+            self._autoGeofencingSupported = False
+
         return data
     
+    def getAutoGeofencingSupported(self):
+        """Return whether the Tado Home supports auto geofencing"""
+        if self._autoGeofencingSupported is None:
+            self.getHomeState()
+        return self._autoGeofencingSupported
+
     def getCapabilities(self, zone):
         """Gets current capabilities of Zone zone."""
         # pylint: disable=C0103
@@ -390,7 +427,17 @@ class Tado:
         payload = { "homePresence": "AWAY" }
         data = self._apiCall(cmd, "PUT", payload)
         return data
-    
+
+    def setAuto(self):
+        """Sets HomeState to AUTO """
+        # Only attempt to set Auto Geofencing if it is believed to be supported
+        if self._autoGeofencingSupported:
+            cmd = 'presenceLock'
+            data = self._apiCall(cmd, "DELETE")
+            return data
+        else:
+            raise TadoNotSupportedException("Auto mode is not known to be supported.")
+
     def getWindowState(self, zone):
         """Returns the state of the window for Zone zone"""
         data = self.getState(zone)['openWindow']
