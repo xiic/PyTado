@@ -38,6 +38,7 @@ class Tado:
     # Instance-wide constant info
     api2url = 'https://my.tado.com/api/v2/'
     mobi2url = 'https://my.tado.com/mobile/1.9/'
+    energyiq2url = 'https://energy-insights.tado.com/api/'
     timeout = 10
     HOME_DOMAIN = 'homes'
     DEVICE_DOMAIN = 'devices'
@@ -62,12 +63,16 @@ class Tado:
         return response.json()
 
     # 'Private' methods for use in class, Tado API V2.
-    def _apiCall(self, cmd, method="GET", data=None, plain=False, domain=HOME_DOMAIN, device_id=None):
+    def _apiCall(self, cmd, method="GET", data=None, plain=False, domain=HOME_DOMAIN, device_id=None, energy_iq=False):
         # pylint: disable=C0103
 
         self._refresh_token()
 
         headers = self.headers
+
+        api_url = self.api2url
+        if energy_iq:
+            api_url = self.energyiq2url
 
         if data is not None:
             if plain:
@@ -79,11 +84,11 @@ class Tado:
 
         if self._debugCalls:
             _LOGGER.debug("api call: %s: %s, headers %s, data %s", method, cmd, headers, data)
-            
+
         if domain == self.DEVICE_DOMAIN:
-            url = '%s%s/%s/%s' % (self.api2url, domain, device_id, cmd)
+            url = '%s%s/%s/%s' % (api_url, domain, device_id, cmd)
         else:
-            url = '%s%s/%i/%s' % (self.api2url, domain, self.id, cmd)
+            url = '%s%s/%i/%s' % (api_url, domain, self.id, cmd)
         response = self._http_session.request(method, url, timeout=self.timeout,
                                     headers=headers,
                                     data=data)
@@ -91,7 +96,7 @@ class Tado:
         if self._debugCalls:
             _LOGGER.debug("api call: %s: %s, response %s",
                           method, cmd, response.text)
-        
+
         str_response = response.text
         if str_response is None or str_response == "":
             return
@@ -121,8 +126,8 @@ class Tado:
             return False
 
         url = 'https://auth.tado.com/oauth/token'
-        data = {'client_id' : 'public-api-preview',
-                'client_secret' : '4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw',
+        data = {'client_id' : 'tado-web-app',
+                'client_secret' : 'wZaRN7rpjn3FoNyF5IFuxg9uMzYJcvOoQ8QWiIqS3hfk6gLhVlG57j5YNoZL2Rtc',
                 'grant_type' : 'refresh_token',
                 'scope' : 'home.user',
                 'refresh_token' : self.refresh_token}
@@ -131,7 +136,7 @@ class Tado:
         # pylint: disable=R0204
         response = self._http_session.request("post", url, params=data, timeout=self.timeout, data=json.dumps({}).encode('utf8'),
                                      headers={'Content-Type': 'application/json',
-                                              'Referer' : 'https://my.tado.com/'})
+                                              'Referer' : 'https://app.tado.com/'})
 
         _LOGGER.debug("api call result: %s", response.text)
         self._setOAuthHeader(response.json())
@@ -143,8 +148,8 @@ class Tado:
         headers['Content-Type'] = 'application/json'
 
         url = 'https://auth.tado.com/oauth/token'
-        data = {'client_id' : 'public-api-preview',
-                'client_secret' : '4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw',
+        data = {'client_id' : 'tado-web-app',
+                'client_secret' : 'wZaRN7rpjn3FoNyF5IFuxg9uMzYJcvOoQ8QWiIqS3hfk6gLhVlG57j5YNoZL2Rtc',
                 'grant_type' : 'password',
                 'password' : password,
                 'scope' : 'home.user',
@@ -152,7 +157,7 @@ class Tado:
         # pylint: disable=R0204
         response = self._http_session.request("post", url, params=data, timeout=self.timeout, data=json.dumps({}).encode('utf8'),
                                      headers={'Content-Type': 'application/json',
-                                              'Referer' : 'https://my.tado.com/'})
+                                              'Referer' : 'https://app.tado.com/'})
 
         self._setOAuthHeader(response.json())
 
@@ -239,7 +244,7 @@ class Tado:
             self._autoGeofencingSupported = False
 
         return data
-    
+
     def getAutoGeofencingSupported(self):
         """Return whether the Tado Home supports auto geofencing"""
         if self._autoGeofencingSupported is None:
@@ -341,7 +346,7 @@ class Tado:
         cmd = 'weather'
         data = self._apiCall(cmd)
         return data
-    
+
     def getAirComfort(self):
         """Gets air quality information"""
         # pylint: disable=C0103
@@ -365,14 +370,14 @@ class Tado:
         cmd = 'getAppUsersRelativePositions'
         data = self._mobile_apiCall(cmd)
         return data
-    
+
     def getMobileDevices(self):
         """Gets information about mobile devices"""
 
         cmd = 'mobileDevices'
         data = self._apiCall(cmd)
         return data
-    
+
     def resetZoneOverlay(self, zone):
         """Delete current overlay"""
         # pylint: disable=C0103
@@ -407,12 +412,12 @@ class Tado:
 
         data = self._apiCall(cmd, "PUT", post_data)
         return data
-        
+
     def getZoneOverlayDefault(self, zone):
         """Get current overlay default settings for zone."""
         cmd = 'zones/%i/defaultOverlay' % zone
         data = self._apiCall(cmd)
-        return data     
+        return data
 
     def setHome(self):
         """Sets HomeState to HOME """
@@ -463,7 +468,7 @@ class Tado:
         cmd = 'zones/%i/state/openWindow' % zone
         data = self._apiCall(cmd, "DELETE", {}, True)
         return data
-    
+
     def getDeviceInfo(self, device_id, cmd=''):
         """
         Gets information about devices
@@ -471,24 +476,62 @@ class Tado:
         """
         data = self._apiCall(cmd=cmd, domain=self.DEVICE_DOMAIN, device_id=device_id)
         return data
-    
+
     def setTempOffset(self, device_id, offset=0, measure="celsius"):
         """Set the Temperature offset on the device."""
         offset_data = {measure:offset}
         data = self._apiCall(cmd='temperatureOffset', method='PUT', data=offset_data, domain=self.DEVICE_DOMAIN, device_id=device_id)
         return data
-    
+
+    def getEIQTariffs(self):
+        """Get Energy IQ tariff history"""
+        data = self._apiCall(cmd='tariffs', energy_iq=True)
+        return data
+
+    def getEIQMeterReadings(self):
+        """Get Energy IQ meter readings"""
+        data = self._apiCall(cmd='meterReadings', energy_iq=True)
+        return data
+
+    def setEIQMeterReadings(self, date=datetime.datetime.now().strftime('%Y-%m-%d'), reading=0):
+        """Send Meter Readings to Tado, date format is YYYY-MM-DD, reading is without decimals"""
+        payload = {
+            "date": date,
+            "reading": reading
+        }
+        data = self._apiCall(cmd='meterReadings', method='POST', data=payload, energy_iq=True)
+        return data
+
+    def setEIQTariff(self, from_date=datetime.datetime.now().strftime('%Y-%m-%d'), to_date=datetime.datetime.now().strftime('%Y-%m-%d'), tariff=0, unit="m3", is_period=False):
+        """Send Tariffs to Tado, date format is YYYY-MM-DD, tariff is with decimals, unit is either m3 or kWh, set is_period to true to set a period of price"""
+        tariff_in_cents = tariff*100
+        if is_period:
+            payload = {
+                "tariffInCents": tariff_in_cents,
+                "unit": unit,
+                "startDate": from_date,
+                "endDate": to_date
+            }
+        else:
+            payload = {
+                "tariffInCents": tariff_in_cents,
+                "unit": unit,
+                "startDate": from_date
+            }
+        data = self._apiCall(cmd='tariffs', method='POST', data=payload, energy_iq=True)
+        return data
+
     # Ctor
     def __init__(self, username, password, timeout=10, http_session=None):
         """Performs login and save session cookie."""
         # HTTPS Interface
-        self.headers = {'Referer' : 'https://my.tado.com/'}
+        self.headers = {'Referer' : 'https://app.tado.com/'}
         self.refresh_token = ''
         self.refresh_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
         # pylint: disable=C0103
         self._http_session = http_session if http_session else Session()
-        self.headers = {'Referer' : 'https://my.tado.com/'}
+        self.headers = {'Referer' : 'https://app.tado.com/'}
         self._loginV2(username, password)
         self.id = self.getMe()['homes'][0]['id']
 
