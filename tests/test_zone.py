@@ -4,18 +4,20 @@ import os
 import json
 from unittest.mock import patch
 
+from PyTado.http import Http
 from PyTado.interface import Tado
 
 
 def _mock_tado_climate_zone_from_fixture(filename):
-    with patch("PyTado.interface.Tado._loginV2"), patch(
-        "PyTado.interface.Tado.getMe"
+    obj = Http
+    with patch.object(obj, "_Http__login"), patch(
+            "PyTado.interface.Tado.get_me"
     ), patch(
-        "PyTado.interface.Tado.getState",
+        "PyTado.interface.Tado.get_state",
         return_value=json.loads(load_fixture(filename)),
     ):
         tado = Tado("my@username.com", "mypassword")
-        return tado.getZoneState(1)
+        return tado.get_zone_state(1)
 
 
 def load_fixture(filename):
@@ -41,8 +43,8 @@ def test_ac_issue_32294_heat_mode():
     assert ac_issue_32294_heat_mode.overlay_termination_type is None
     assert ac_issue_32294_heat_mode.current_humidity == 40.4
     assert (
-        ac_issue_32294_heat_mode.current_humidity_timestamp
-        == "2020-02-29T22:51:05.016Z"
+            ac_issue_32294_heat_mode.current_humidity_timestamp
+            == "2020-02-29T22:51:05.016Z"
     )
     assert ac_issue_32294_heat_mode.ac_power_timestamp == "2020-02-29T22:50:34.850Z"
     assert ac_issue_32294_heat_mode.heating_power_timestamp is None
