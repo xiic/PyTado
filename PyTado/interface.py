@@ -169,19 +169,19 @@ class Tado:
         """
         Gets current state of Home.
         """
-        # returns {"presence":"AWAY"} or {"presence":"HOME"}
-        # without an auto assist skill presence is not switched automatically,
-        # but a button is shown in the app. showHomePresenceSwitchButton
-        # is an indicator, that the homeState can be switched
-        # {"presence":"HOME","showHomePresenceSwitchButton":true}
-        # With an auto assist skill, showSwitchToAutoGeofencingButton is
-        # present when geofencing has been disabled due to the user selecting
-        # a mode manually:
-        # {'presence': 'HOME', 'presenceLocked': False, 
+        # Without an auto assist skill, presence is not switched automatically.
+        # Instead a button is shown in the app - showHomePresenceSwitchButton,
+        # which is an indicator, that the homeState can be switched:
+        # {"presence":"HOME","showHomePresenceSwitchButton":true}.
+        # With an auto assist skill, a different button is present depending
+        # on geofencing state - showSwitchToAutoGeofencingButton is present
+        # when auto geofencing has been disabled due to the user selecting a 
+        # mode manually:
+        # {'presence': 'HOME', 'presenceLocked': True, 
         # 'showSwitchToAutoGeofencingButton': True}
-        # With an auto assist skill, showSwitchToAutoGeofencingButton is NOT
-        # present when geofencing has been enabled:
-        # {'presence': 'HOME', 'presenceLocked': True}
+        # showSwitchToAutoGeofencingButton is NOT present when auto 
+        # geofencing has been enabled:
+        # {'presence': 'HOME', 'presenceLocked': False}
         # In both scenarios with the auto assist skill, 'presenceLocked' 
         # indicates whether presence is current locked (manually set) to 
         # HOME or AWAY or not locked (automatically set based on geolocation)
