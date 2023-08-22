@@ -503,7 +503,6 @@ class Tado:
         request = TadoRequest()
         request.command = f"zones/{zone:d}/overlay"
         request.action = Action.RESET
-        request.endpoint = Endpoint.EIQ
         request.mode = Mode.PLAIN
 
         return self.http.request(request)
