@@ -887,3 +887,35 @@ class Tado:
         request.payload = payload
 
         return self.http.request(request)
+
+    def get_heating_circuits(self):
+        """
+        Gets available heating circuits
+        """
+
+        request = TadoRequest()
+        request.command = "heatingCircuits"
+
+        return self.http.request(request)
+
+    def get_zone_control(self, zone):
+        """
+        Get zone control information
+        """
+
+        request = TadoRequest()
+        request.command = f"zones/{zone:d}/control"
+
+        return self.http.request(request)
+
+    def set_zone_heating_circuit(self, zone, heating_circuit):
+        """
+        Sets the heating circuit for a zone
+        """
+
+        request = TadoRequest()
+        request.command = f"zones/{zone:d}/control/heatingCircuit"
+        request.action = Action.CHANGE
+        request.payload = {"circuitNumber": heating_circuit}
+
+        return self.http.request(request)
