@@ -41,7 +41,7 @@ class Tado:
         else:
             self.log.setLevel(logging.WARNING)
 
-        self.http = Http(username=username, password=password, http_session=http_session)
+        self.http = Http(username=username, password=password, http_session=http_session, debug=debug)
 
     # <editor-fold desc="Deprecated">
     def getMe(self):

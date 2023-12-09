@@ -3,6 +3,7 @@ Do all the API HTTP heavy lifting in this file
 """
 
 import json
+import logging
 import pprint
 from datetime import datetime, timedelta
 
@@ -87,8 +88,12 @@ class Http:
     __username = None
     __password = None
 
-    def __init__(self, username=None, password=None, http_session=session):
+    def __init__(self, username=None, password=None, http_session=session, debug=False):
         self.log = Logger(__name__)
+        if debug:
+            self.log.setLevel(logging.DEBUG)
+        else:
+            self.log.setLevel(logging.WARNING)
         self.refresh_at = datetime.now() + timedelta(minutes=5)
         self.session = http_session if http_session else Session()
         self.session.hooks['response'].append(self.__log_response)
