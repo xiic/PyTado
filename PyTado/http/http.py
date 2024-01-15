@@ -68,8 +68,6 @@ class TadoResponse:
 class Http:
     """API Request Class"""
     log = None
-    # Headers
-    headers = {"Referer": "https://app.tado.com/"}
 
     # OAuth Data
     refresh_token = None
@@ -97,6 +95,7 @@ class Http:
         self.refresh_at = datetime.now() + timedelta(minutes=5)
         self.session = http_session if http_session else Session()
         self.session.hooks['response'].append(self.__log_response)
+        self.headers = {"Referer": "https://app.tado.com/"}
         self.__username = username
         self.__password = password
         self.__login()
