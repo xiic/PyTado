@@ -15,6 +15,10 @@ from .const import (
     TADO_HVAC_ACTION_TO_MODES,
     TADO_MODES_TO_HVAC_ACTION,
     TYPE_AIR_CONDITIONING,
+    CONST_VERTICAL_SWING_OFF,
+    CONST_HORIZONTAL_SWING_OFF,
+    CONST_FAN_SPEED_AUTO,
+    CONST_FAN_SPEED_OFF,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,8 +39,11 @@ class TadoZone:
         self._is_away = False
         self._current_hvac_action = None
         self._current_fan_speed = None
+        self._current_fan_level = None
         self._current_hvac_mode = None
         self._current_swing_mode = None
+        self._current_vertical_swing_mode = None
+        self._current_horizontal_swing_mode = None
         self._target_temp = None
         self._available = False
         self._power = None
@@ -170,6 +177,11 @@ class TadoZone:
         return self._current_fan_speed
 
     @property
+    def current_fan_level(self):
+        """TADO Fan level (tado const)."""
+        return self._current_fan_level
+
+    @property
     def link(self):
         """Link (internet connection state)."""
         return self._link
@@ -188,6 +200,16 @@ class TadoZone:
     def current_swing_mode(self):
         """TADO SWING Mode (tado const)."""
         return self._current_swing_mode
+
+    @property
+    def current_vertical_swing_mode(self):
+        """TADO VERTICAL SWING Mode (tado const)."""
+        return self._current_vertical_swing_mode
+
+    @property
+    def current_horizontal_swing_mode(self):
+        """TADO HORIZONTAL SWING Mode (tado const)."""
+        return self._current_horizontal_swing_mode
 
     @property
     def target_temp(self):
@@ -255,10 +277,13 @@ class TadoZone:
             setting = data["setting"]
 
             self._current_fan_speed = None
+            self._current_fan_level = None
             # If there is no overlay, the mode will always be
             # "SMART_SCHEDULE"
             self._current_hvac_mode = CONST_MODE_OFF
             self._current_swing_mode = CONST_MODE_OFF
+            self._current_vertical_swing_mode = CONST_VERTICAL_SWING_OFF
+            self._current_horizontal_swing_mode = CONST_HORIZONTAL_SWING_OFF
 
             if "mode" in setting:
                 # v3 devices use mode
@@ -266,6 +291,12 @@ class TadoZone:
 
             if "swing" in setting:
                 self._current_swing_mode = setting["swing"]
+
+            if "verticalSwing" in setting:
+                self._current_vertical_swing_mode = setting["verticalSwing"]
+
+            if "horizontalSwing" in setting:
+                self._current_horizontal_swing_mode = setting["horizontalSwing"]
 
             self._power = setting["power"]
             if self._power == "ON":
@@ -286,6 +317,11 @@ class TadoZone:
             elif "type" in setting and setting["type"] == TYPE_AIR_CONDITIONING:
                 self._current_fan_speed = (
                     CONST_FAN_AUTO if self._power == "ON" else CONST_FAN_OFF
+                )
+
+            if "fanLevel" in setting:
+                self._current_fan_level = setting.get(
+                    "fanLevel", CONST_FAN_SPEED_AUTO if self._power == "ON" else CONST_FAN_SPEED_OFF
                 )
 
         self._preparation = "preparation" in data and data["preparation"] is not None
