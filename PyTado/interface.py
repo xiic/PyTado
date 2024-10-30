@@ -7,10 +7,13 @@ import logging
 import warnings
 from enum import IntEnum
 
-from .exceptions import TadoNotSupportedException
-from PyTado.http import Action, Domain, Endpoint, Http, Mode, TadoRequest
+from urllib3 import request
+
+from .exceptions import TadoNotSupportedException, TadoXNotSupportedException
+from PyTado.http import Action, Domain, Endpoint, Http, Mode, TadoRequest, TadoXRequest
 from PyTado.logging import Logger
 from .zone import TadoZone
+from typing import Any
 
 
 class Tado:
@@ -77,10 +80,16 @@ class Tado:
         Gets device information.
         """
 
-        request = TadoRequest()
-        request.command = "devices"
-
-        return self.http.request(request)
+        if self.http.isX:
+            request = TadoXRequest()
+            request.command = "roomsAndDevices"
+            rooms: list[dict[str, Any]] = self.http.request(request)['rooms']
+            devices = [device for room in rooms for device in room['devices']]
+            return devices
+        else:
+            request = TadoRequest()
+            request.command = "devices"
+            return self.http.request(request)
 
     # <editor-fold desc="Deprecated">
     def getZones(self):
@@ -96,10 +105,15 @@ class Tado:
         Gets zones information.
         """
 
-        request = TadoRequest()
-        request.command = "zones"
+        if self.http.isX:
+            request = TadoXRequest()
+            request.command = "roomsAndDevices"
+            return self.http.request(request)['rooms']
+        else:
+            request = TadoRequest()
+            request.command = "zones"
+            return self.http.request(request)
 
-        return self.http.request(request)
 
     # <editor-fold desc="Deprecated">
     def getZoneState(self, zone):
@@ -114,8 +128,10 @@ class Tado:
         """
         Gets current state of Zone as a TadoZone object.
         """
-
-        return TadoZone(self.get_state(zone), zone)
+        if self.http.isX:
+            return self.get_state(zone)
+        else:
+            return TadoZone(self.get_state(zone), zone)
 
     # <editor-fold desc="Deprecated">
     def getZoneStates(self):
@@ -131,8 +147,12 @@ class Tado:
         Gets current states of all zones.
         """
 
-        request = TadoRequest()
-        request.command = "zoneStates"
+        if self.http.isX:
+            request = TadoXRequest()
+            request.command = "rooms"
+        else:
+            request = TadoRequest()
+            request.command = "zoneStates"
 
         return self.http.request(request)
 
@@ -149,10 +169,14 @@ class Tado:
         """
         Gets current state of Zone.
         """
-
-        request = TadoRequest()
-        request.command = f"zones/{zone}/state"
-        data = {**self.http.request(request), **self.get_zone_overlay_default(zone)}
+        if self.http.isX:
+            request = TadoXRequest()
+            request.command = f"rooms/{zone}"
+            data = self.http.request(request)
+        else:
+            request = TadoRequest()
+            request.command = f"zones/{zone}/state"
+            data = {**self.http.request(request), **self.get_zone_overlay_default(zone)}
 
         return data
 
@@ -236,7 +260,10 @@ class Tado:
     def get_capabilities(self, zone):
         """
         Gets current capabilities of zone.
+        TODO: This method is not currently supported by the Tado X API, check if it is needed
         """
+        if self.http.isX:
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
 
         request = TadoRequest()
         request.command = f"zones/{zone:d}/capabilities"
@@ -258,7 +285,11 @@ class Tado:
         """
 
         data = self.get_state(zone)['sensorDataPoints']
-        return {'temperature': data['insideTemperature']['celsius'],
+        if self.http.isX:
+            return {'temperature': data['insideTemperature']['value'],
+                    'humidity': data['humidity']['percentage']}
+        else:
+            return {'temperature': data['insideTemperature']['celsius'],
                 'humidity': data['humidity']['percentage']}
 
     # <editor-fold desc="Deprecated">
@@ -275,15 +306,21 @@ class Tado:
         Get the Timetable type currently active
         """
 
-        request = TadoRequest()
-        request.command = f"zones/{zone:d}/schedule/activeTimetable"
-        request.mode = Mode.PLAIN
-        data = self.http.request(request)
+        if self.http.isX:
+            # Not currently supported by the Tado X API
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
+        else:
+            request = TadoRequest()
+            request.command = f"zones/{zone:d}/schedule/activeTimetable"
+            request.mode = Mode.PLAIN
+            data = self.http.request(request)
 
-        if "id" in data:
-            return Tado.Timetable(data["id"])
+            if "id" in data:
+                return Tado.Timetable(data["id"])
 
-        raise Exception(f"Returned data did not contain \"id\" : {str(data)}")
+            raise Exception(f"Returned data did not contain \"id\" : {str(data)}")
+
+
 
     # <editor-fold desc="Deprecated">
     def getHistoric(self, zone, date):
@@ -328,6 +365,10 @@ class Tado:
         id = 3 : SEVEN_DAY (MONDAY, TUESDAY, WEDNESDAY ...)
         """
 
+        if self.http.isX:
+            # Not currently supported by the Tado X API
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
+
         # Type checking
         if not isinstance(_id, Tado.Timetable):
             raise TypeError('id must be an instance of Tado.Timetable')
@@ -350,12 +391,19 @@ class Tado:
 
     # </editor-fold>
 
-    def get_schedule(self, zone, _id, day=None):
+    def get_schedule(self, zone, _id=None, day=None):
         """
         Get the JSON representation of the schedule for a zone.
         Zone has 3 different schedules, one for each timetable (see setTimetable)
         """
 
+        if self.http.isX:
+            request = TadoXRequest()
+            request.command = f'rooms/{zone}/schedule'
+            return self.http.request(request)
+
+        if not _id:
+            raise ValueError('id must be an instance of Tado.Timetable')
         # Type checking
         if not isinstance(_id, Tado.Timetable):
             raise TypeError('id must be an instance of Tado.Timetable')
@@ -377,14 +425,25 @@ class Tado:
 
     # </editor-fold>
 
-    def set_schedule(self, zone, _id, day, data):
+    def set_schedule(self, zone, data, _id=None, day=None):
         """
-        Set the schedule for a zone, day is required
+        Set the schedule for a zone, day is required for non-X API
         """
+
+        # TODO: sometimes gives back 400 error
+        if self.http.isX:
+            request = TadoXRequest()
+            request.action = Action.SET
+            request.command = f'rooms/{zone}/schedule'
+            request.payload = data
+            request.mode = Mode.OBJECT
+            return self.http.request(request)
 
         # Type checking
         if not isinstance(_id, Tado.Timetable):
             raise TypeError('id must be an instance of Tado.Timetable')
+        if not isinstance(day, int):
+            raise ValueError('day must be an integer')
 
         request = TadoRequest()
         request.command = f"zones/{zone:d}/schedule/timetables/{_id:d}/blocks/{day}"
@@ -427,7 +486,10 @@ class Tado:
         Gets air quality information
         """
 
-        request = TadoRequest()
+        if self.http.isX:
+            request = TadoXRequest()
+        else:
+            request = TadoRequest()
         request.command = "airComfort"
 
         return self.http.request(request)
@@ -460,6 +522,11 @@ class Tado:
         """
         Gets getAppUsersRelativePositions data
         """
+
+        if self.http.isX:
+            # Not currently supported by the Tado X API
+            # TODO: reverse engineer mobile API
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
 
         request = TadoRequest()
         request.command = "getAppUsersRelativePositions"
@@ -500,12 +567,19 @@ class Tado:
         Delete current overlay
         """
 
-        request = TadoRequest()
-        request.command = f"zones/{zone:d}/overlay"
-        request.action = Action.RESET
-        request.mode = Mode.PLAIN
+        if self.http.isX:
+            request = TadoXRequest()
+            request.command = f"rooms/{zone}/resumeSchedule"
+            request.action = Action.SET
 
-        return self.http.request(request)
+            return self.http.request(request)
+        else:
+            request = TadoRequest()
+            request.command = f"zones/{zone:d}/overlay"
+            request.action = Action.RESET
+            request.mode = Mode.PLAIN
+
+            return self.http.request(request)
 
     # <editor-fold desc="Deprecated">
     def setZoneOverlay(self, zone, overlayMode, setTemp=None, duration=None, deviceType='HEATING', power="ON",
@@ -540,8 +614,23 @@ class Tado:
 
         post_data = {
             "setting": {"type": device_type, "power": power},
-            "termination": {"typeSkillBasedApp": overlay_mode},
+            "termination": {"type": overlay_mode},
         }
+
+        if self.http.isX:
+            if set_temp is not None:
+                post_data["setting"]["temperature"] = {"value": set_temp, "valueRaw": set_temp, "precision": 0.1}
+
+            if duration is not None:
+                post_data["termination"]["durationInSeconds"] = duration
+
+            request = TadoXRequest()
+            request.command = f"rooms/{zone}/manualControl"
+            request.action = Action.SET
+            request.payload = post_data
+
+            return self.http.request(request)
+
 
         if set_temp is not None:
             post_data["setting"]["temperature"] = {"celsius": set_temp}
@@ -583,6 +672,10 @@ class Tado:
         """
         Get current overlay default settings for zone.
         """
+
+        if self.http.isX:
+            # Not currently supported by the Tado X API
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
 
         request = TadoRequest()
         request.command = f"zones/{zone:d}/defaultOverlay"
@@ -718,6 +811,10 @@ class Tado:
         Note: This can only be set if an open window was detected in this zone
         """
 
+        if sef.http.isX:
+            # Not currently supported by the Tado X API
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
+
         request = TadoRequest()
         request.command = f"zones/{zone:d}/state/openWindow/activate"
         request.action = Action.SET
@@ -738,6 +835,10 @@ class Tado:
         """
         Sets the window in zone to closed
         """
+
+        if self.http.isX:
+            # TODO test with X
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
 
         request = TadoRequest()
         request.command = f"zones/{zone:d}/state/openWindow"
@@ -761,6 +862,12 @@ class Tado:
         Gets information about devices
         with option to get specific info i.e. cmd='temperatureOffset'    
         """
+
+        if self.http.isX:
+            # Not currently supported by the Tado X API
+            # Is included in the roomsAndDevices endpoint
+            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
+
         request = TadoRequest()
         request.command = cmd
         request.action = Action.GET
@@ -782,6 +889,15 @@ class Tado:
         """
         Set the Temperature offset on the device.
         """
+
+        if self.http.isX:
+            request = TadoXRequest()
+            request.command = f"roomsAndDevices/devices/{device_id}"
+            request.action = Action.UPDATE
+            request.payload = {"temperatureOffset": offset}
+
+            return self.http.request(request)
+
 
         request = TadoRequest()
         request.command = "temperatureOffset"
@@ -914,6 +1030,7 @@ class Tado:
     def get_zone_control(self, zone):
         """
         Get zone control information
+        TODO: Test with X
         """
 
         request = TadoRequest()
@@ -924,6 +1041,7 @@ class Tado:
     def set_zone_heating_circuit(self, zone, heating_circuit):
         """
         Sets the heating circuit for a zone
+        TODO: Test with X
         """
 
         request = TadoRequest()
