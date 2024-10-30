@@ -7,8 +7,6 @@ import logging
 import warnings
 from enum import IntEnum
 
-from urllib3 import request
-
 from .exceptions import TadoNotSupportedException, TadoXNotSupportedException
 from PyTado.http import Action, Domain, Endpoint, Http, Mode, TadoRequest, TadoXRequest
 from PyTado.logging import Logger
