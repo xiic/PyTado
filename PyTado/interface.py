@@ -127,7 +127,7 @@ class Tado:
         Gets current state of Zone as a TadoZone object.
         """
         if self.http.isX:
-            return self.get_state(zone)
+            return TadoZone(self.get_state(zone), zone, isX=True)
         else:
             return TadoZone(self.get_state(zone), zone)
 
