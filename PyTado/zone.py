@@ -401,7 +401,7 @@ class TadoZone:
             
             if "manualControlTermination" in data:
                 if data["manualControlTermination"]:
-                    self._current_hvac_mode = CONST_MODE_HEAT
+                    self._current_hvac_mode = CONST_MODE_HEAT if self._power == "ON" else CONST_MODE_OFF
                     self._overlay_termination_type = data["manualControlTermination"]["type"]
                     self._overlay_termination_timestamp = data["manualControlTermination"]["projectedExpiry"]
                 else:
