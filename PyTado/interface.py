@@ -815,7 +815,7 @@ class Tado:
         Note: This can only be set if an open window was detected in this zone
         """
 
-        if sef.http.isX:
+        if self.http.isX:
             # Not currently supported by the Tado X API
             raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
 
