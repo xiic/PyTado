@@ -6,6 +6,7 @@ import json
 import logging
 import pprint
 from datetime import datetime, timedelta
+from typing import Union
 
 try:
     from enum import StrEnum, ReprEnum
@@ -26,6 +27,11 @@ class Endpoint(StrEnum):
     MOBILE = "https://my.tado.com/mobile/1.9/"
     EIQ = "https://energy-insights.tado.com/api/"
 
+class EndpointX(StrEnum):
+    """Endpoint URL Enum"""
+    API = "https://hops.tado.com/"
+    EIQ = "https://energy-insights.tado.com/api/"
+
 
 class Domain(StrEnum):
     """API Request Domain Enum"""
@@ -40,6 +46,7 @@ class Action(StrEnum):
     SET = "POST"
     RESET = "DELETE"
     CHANGE = "PUT"
+    UPDATE = "PATCH"
 
 
 class Mode(Enum):
@@ -51,6 +58,16 @@ class Mode(Enum):
 class TadoRequest:
     """Data Container"""
     endpoint = Endpoint.API
+    command = None
+    action = Action.GET
+    payload = None
+    domain = Domain.HOME
+    device = None
+    mode = Mode.OBJECT
+
+class TadoXRequest:
+    """Data Container"""
+    endpoint = EndpointX.API
     command = None
     action = Action.GET
     payload = None
@@ -83,6 +100,8 @@ class Http:
     # Id
     id = 0
 
+    isX = False
+
     __username = None
     __password = None
 
@@ -111,7 +130,7 @@ class Http:
             f"Response:\n\tStatusCode: {response_status}\n\tData: {response.json()}"
         )
 
-    def request(self, request: TadoRequest):
+    def request(self, request: Union[TadoRequest, TadoXRequest]):
         """Request something from the API with a TadoRequest"""
         self.__refresh_token()
 
@@ -250,6 +269,7 @@ class Http:
         if response.status_code == 200:
             self.__set_oauth_header(response.json())
             self.__get_id()
+            self.__check_x()
 
     def __get_id(self):
         if self.id == 0:
@@ -257,3 +277,14 @@ class Http:
             request.action = Action.GET
             request.domain = Domain.ME
             self.id = self.request(request)['homes'][0]['id']
+
+    def __check_x(self):
+        # get home info
+        request = TadoRequest()
+        request.action = Action.GET
+        request.domain = Domain.HOME
+        request.command = ""
+        home = self.request(request)
+        if 'generation' in home and home['generation'] == 'LINE_X':
+            self.isX = True
+            self.log.debug("Tado X API detected")

@@ -1,1 +1,1 @@
-from .http import Action, Domain, Endpoint, Http, Mode, TadoRequest
+from .http import Action, Domain, Endpoint, Http, Mode, TadoRequest, TadoXRequest
