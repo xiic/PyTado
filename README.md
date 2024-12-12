@@ -21,7 +21,7 @@ Example basic usage
 
     >>> from PyTado.interface import Tado
     >>> t = Tado('my@username.com', 'mypassword')
-    >>> climate = t.getClimate(zone=1)
+    >>> climate = t.get_climate(zone=1)
 
 Development
 -----------
