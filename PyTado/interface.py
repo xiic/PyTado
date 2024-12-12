@@ -816,8 +816,11 @@ class Tado:
         """
 
         if self.http.isX:
-            # Not currently supported by the Tado X API
-            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
+            request = TadoXRequest()
+            request.command = f"rooms/{zone}/openWindow"
+            request.action = Action.SET
+
+            return self.http.request(request)
 
         request = TadoRequest()
         request.command = f"zones/{zone:d}/state/openWindow/activate"
@@ -841,8 +844,11 @@ class Tado:
         """
 
         if self.http.isX:
-            # TODO test with X
-            raise TadoXNotSupportedException("This method is not currently supported by the Tado X API")
+            request = TadoXRequest()
+            request.command = f"rooms/{zone}/openWindow"
+            request.action = Action.RESET
+
+            return self.http.request(request)
 
         request = TadoRequest()
         request.command = f"zones/{zone:d}/state/openWindow"
