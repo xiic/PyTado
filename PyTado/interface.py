@@ -790,7 +790,7 @@ class Tado:
         data = self.get_state(zone)
 
         if self.http.isX:
-            if 'activated'in data['openWindow']:
+            if data['openWindow'] and 'activated'in data['openWindow']:
                 return {'openWindowDetected': True}
             else:
                 return {'openWindowDetected': False}
