@@ -288,7 +288,7 @@ class Tado:
                     'humidity': data['humidity']['percentage']}
         else:
             return {'temperature': data['insideTemperature']['celsius'],
-                'humidity': data['humidity']['percentage']}
+                    'humidity': data['humidity']['percentage']}
 
     # <editor-fold desc="Deprecated">
     def getTimetable(self, zone):
