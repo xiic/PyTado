@@ -7,7 +7,7 @@ import json
 import logging
 import pprint
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -20,15 +20,9 @@ _LOGGER = Logger(__name__)
 class Endpoint(enum.StrEnum):
     """Endpoint URL Enum"""
 
-    API = "https://my.tado.com/api/v2/"
+    MY_API = "https://my.tado.com/api/v2/"
+    HOPS_API = "https://hops.tado.com/"
     MOBILE = "https://my.tado.com/mobile/1.9/"
-    EIQ = "https://energy-insights.tado.com/api/"
-
-
-class EndpointX(enum.StrEnum):
-    """Endpoint URL Enum"""
-
-    API = "https://hops.tado.com/"
     EIQ = "https://energy-insights.tado.com/api/"
 
 
@@ -47,7 +41,6 @@ class Action(enum.StrEnum):
     SET = "POST"
     RESET = "DELETE"
     CHANGE = "PUT"
-    UPDATE = "PATCH"
 
 
 class Mode(enum.Enum):
@@ -58,27 +51,51 @@ class Mode(enum.Enum):
 
 
 class TadoRequest:
-    """Data Container"""
+    """Data Container for MY API Requests"""
 
-    endpoint: Endpoint = Endpoint.API
-    command: str | None = None
-    action: Action = Action.GET
-    payload: dict[str, Any] | None = None
-    domain: Domain = Domain.HOME
-    device: int | None = None
-    mode: Mode = Mode.OBJECT
+    def __init__(
+        self,
+        endpoint: Endpoint = Endpoint.MY_API,
+        command: Optional[str] = None,
+        action: Action = Action.GET,
+        payload: Optional[Dict[str, Any]] = None,
+        domain: Domain = Domain.HOME,
+        device: Optional[int] = None,
+        mode: Mode = Mode.OBJECT,
+    ):
+        self.endpoint = endpoint
+        self.command = command
+        self.action = action
+        self.payload = payload
+        self.domain = domain
+        self.device = device
+        self.mode = mode
 
 
-class TadoXRequest:
-    """Data Container"""
+class TadoXRequest(TadoRequest):
+    """Data Container for HOPS (Tado X) API Requests"""
 
-    endpoint: EndpointX = EndpointX.API
-    command: str | None = None
-    action: Action = Action.GET
-    payload: dict[str, Any] | None = None
-    domain: Domain = Domain.HOME
-    device: int | None = None
-    mode: Mode = Mode.OBJECT
+    def __init__(
+        self,
+        command: Optional[str] = None,
+        action: Action = Action.GET,
+        payload: Optional[Dict[str, Any]] = None,
+        domain: Domain = Domain.HOME,
+        device: Optional[int] = None,
+        mode: Mode = Mode.OBJECT,
+    ):
+        if action == Action.CHANGE:
+            action = "PATCH"
+
+        super().__init__(
+            endpoint=Endpoint.HOPS_API,
+            command=command,
+            action=action,
+            payload=payload,
+            domain=domain,
+            device=device,
+            mode=mode,
+        )
 
 
 class TadoResponse:
@@ -170,6 +187,9 @@ class Http:
             return {}
 
         return response.json()
+
+    def is_x_api(self):
+        return self._x_api
 
     def _configure_url(self, request: TadoRequest) -> str:
         if request.endpoint == Endpoint.MOBILE:
