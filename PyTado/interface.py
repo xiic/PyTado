@@ -17,7 +17,7 @@ from typing import Any
 class Tado:
     """Interacts with a Tado thermostat via public API.
     Example usage: t = Tado('me@somewhere.com', 'mypasswd')
-                   t.getClimate(1) # Get climate, zone 1.
+                   t.get_climate(1) # Get climate, zone 1.
     """
 
     class Timetable(IntEnum):
