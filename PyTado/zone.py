@@ -1,4 +1,5 @@
 """Adapter to represent a tado zones and state."""
+
 import logging
 
 from .const import (
@@ -221,12 +222,12 @@ class TadoZone:
     def available(self):
         """Device is available and link is up."""
         return self._available
-        
+
     @property
     def default_overlay_termination_type(self):
         """Zone default overlay type."""
         return self._default_overlay_termination_type
-        
+
     @property
     def default_overlay_termination_duration(self):
         """Zone default overlay duration."""
@@ -240,16 +241,22 @@ class TadoZone:
 
             if "insideTemperature" in sensor_data:
                 if self.isX:
-                    self._current_temp = float(sensor_data["insideTemperature"]["value"])
+                    self._current_temp = float(
+                        sensor_data["insideTemperature"]["value"]
+                    )
                     self._current_temp_timestamp = None
                 else:
-                    temperature = float(sensor_data["insideTemperature"]["celsius"])
+                    temperature = float(
+                        sensor_data["insideTemperature"]["celsius"]
+                    )
                     self._current_temp = temperature
-                    self._current_temp_timestamp = sensor_data["insideTemperature"]["timestamp"]
+                    self._current_temp_timestamp = sensor_data[
+                        "insideTemperature"
+                    ]["timestamp"]
                 if "precision" in sensor_data["insideTemperature"]:
-                    self._precision = sensor_data["insideTemperature"]["precision"][
-                        "celsius"
-                    ]
+                    self._precision = sensor_data["insideTemperature"][
+                        "precision"
+                    ]["celsius"]
 
             if "humidity" in sensor_data:
                 humidity = float(sensor_data["humidity"]["percentage"])
@@ -257,14 +264,15 @@ class TadoZone:
                 if self.isX:
                     self._current_humidity_timestamp = None
                 else:
-                    self._current_humidity_timestamp = sensor_data["humidity"]["timestamp"]
+                    self._current_humidity_timestamp = sensor_data["humidity"][
+                        "timestamp"
+                    ]
 
         self._is_away = None
         self._tado_mode = None
         if "tadoMode" in data:
             self._is_away = data["tadoMode"] == "AWAY"
             self._tado_mode = data["tadoMode"]
-
 
         self._link = None
         if "link" in data:
@@ -281,7 +289,9 @@ class TadoZone:
                 and data["setting"]["temperature"] is not None
             ):
                 if self.isX:
-                    self._target_temp = float(data["setting"]["temperature"]["value"])
+                    self._target_temp = float(
+                        data["setting"]["temperature"]["value"]
+                    )
                 else:
                     setting = float(data["setting"]["temperature"]["celsius"])
                     self._target_temp = setting
@@ -319,12 +329,15 @@ class TadoZone:
                     and setting["type"] in TADO_HVAC_ACTION_TO_MODES
                 ):
                     # v2 devices do not have mode so we have to figure it out from type
-                    self._current_hvac_mode = TADO_HVAC_ACTION_TO_MODES[setting["type"]]
+                    self._current_hvac_mode = TADO_HVAC_ACTION_TO_MODES[
+                        setting["type"]
+                    ]
 
             # Not all devices have fans
             if "fanSpeed" in setting:
                 self._current_fan_speed = setting.get(
-                    "fanSpeed", CONST_FAN_AUTO if self._power == "ON" else CONST_FAN_OFF
+                    "fanSpeed",
+                    CONST_FAN_AUTO if self._power == "ON" else CONST_FAN_OFF,
                 )
             elif "type" in setting and setting["type"] == TYPE_AIR_CONDITIONING:
                 self._current_fan_speed = (
@@ -333,11 +346,20 @@ class TadoZone:
 
             if "fanLevel" in setting:
                 self._current_fan_level = setting.get(
-                    "fanLevel", CONST_FAN_SPEED_AUTO if self._power == "ON" else CONST_FAN_SPEED_OFF
+                    "fanLevel",
+                    (
+                        CONST_FAN_SPEED_AUTO
+                        if self._power == "ON"
+                        else CONST_FAN_SPEED_OFF
+                    ),
                 )
 
-        self._preparation = "preparation" in data and data["preparation"] is not None
-        self._open_window = "openWindow" in data and data["openWindow"] is not None
+        self._preparation = (
+            "preparation" in data and data["preparation"] is not None
+        )
+        self._open_window = (
+            "openWindow" in data and data["openWindow"] is not None
+        )
         self._open_window_detected = (
             "openWindowDetected" in data and data["openWindowDetected"] is True
         )
@@ -345,10 +367,16 @@ class TadoZone:
 
         if "activityDataPoints" in data:
             activity_data = data["activityDataPoints"]
-            if "acPower" in activity_data and activity_data["acPower"] is not None:
+            if (
+                "acPower" in activity_data
+                and activity_data["acPower"] is not None
+            ):
                 self._ac_power = activity_data["acPower"]["value"]
                 self._ac_power_timestamp = activity_data["acPower"]["timestamp"]
-                if activity_data["acPower"]["value"] == "ON" and self._power == "ON":
+                if (
+                    activity_data["acPower"]["value"] == "ON"
+                    and self._power == "ON"
+                ):
                     # acPower means the unit has power so we need to map the mode
                     self._current_hvac_action = TADO_MODES_TO_HVAC_ACTION.get(
                         self._current_hvac_mode, CONST_HVAC_COOL
@@ -357,7 +385,9 @@ class TadoZone:
                 "heatingPower" in activity_data
                 and activity_data["heatingPower"] is not None
             ):
-                self._heating_power = activity_data["heatingPower"].get("value", None)
+                self._heating_power = activity_data["heatingPower"].get(
+                    "value", None
+                )
                 self._heating_power_timestamp = activity_data["heatingPower"][
                     "timestamp"
                 ]
@@ -377,34 +407,57 @@ class TadoZone:
                 "termination" in data["overlay"]
                 and "type" in data["overlay"]["termination"]
             ):
-                self._overlay_termination_type = data["overlay"]["termination"]["type"]
-                self._overlay_termination_timestamp = data["overlay"]["termination"].get('expiry',None)
+                self._overlay_termination_type = data["overlay"]["termination"][
+                    "type"
+                ]
+                self._overlay_termination_timestamp = data["overlay"][
+                    "termination"
+                ].get("expiry", None)
         else:
             self._current_hvac_mode = CONST_MODE_SMART_SCHEDULE
 
         self._connection = (
-            data["connectionState"]["value"] if "connectionState" in data else None
+            data["connectionState"]["value"]
+            if "connectionState" in data
+            else None
         )
         self._available = self._link != CONST_LINK_OFFLINE
-        
+
         if "terminationCondition" in data:
-            self._default_overlay_termination_type = data["terminationCondition"].get('type',None)
-            self._default_overlay_termination_duration = data["terminationCondition"].get('durationInSeconds',None)
-        
+            self._default_overlay_termination_type = data[
+                "terminationCondition"
+            ].get("type", None)
+            self._default_overlay_termination_duration = data[
+                "terminationCondition"
+            ].get("durationInSeconds", None)
+
         if self.isX:
             if self._power == "ON":
-                self._current_hvac_action = CONST_HVAC_IDLE if data["heatingPower"]["percentage"] == 0 else CONST_HVAC_HEAT
-                self._heating_power_percentage = data["heatingPower"]["percentage"]
+                self._current_hvac_action = (
+                    CONST_HVAC_IDLE
+                    if data["heatingPower"]["percentage"] == 0
+                    else CONST_HVAC_HEAT
+                )
+                self._heating_power_percentage = data["heatingPower"][
+                    "percentage"
+                ]
             else:
                 self._heating_power_percentage = 0
                 self._current_hvac_action = CONST_HVAC_OFF
-            
+
             if "manualControlTermination" in data:
                 if data["manualControlTermination"]:
-                    self._current_hvac_mode = CONST_MODE_HEAT if self._power == "ON" else CONST_MODE_OFF
-                    self._overlay_termination_type = data["manualControlTermination"]["type"]
-                    self._overlay_termination_timestamp = data["manualControlTermination"]["projectedExpiry"]
+                    self._current_hvac_mode = (
+                        CONST_MODE_HEAT
+                        if self._power == "ON"
+                        else CONST_MODE_OFF
+                    )
+                    self._overlay_termination_type = data[
+                        "manualControlTermination"
+                    ]["type"]
+                    self._overlay_termination_timestamp = data[
+                        "manualControlTermination"
+                    ]["projectedExpiry"]
                 else:
                     self._overlay_termination_type = None
                     self._overlay_termination_timestamp = None
-
