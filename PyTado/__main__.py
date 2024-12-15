@@ -7,35 +7,35 @@ import argparse
 import logging
 import sys
 
-from PyTado.interface import Tado as tado_client
+from PyTado.interface import Tado
 
 
 def log_in(email, password):
-    t = tado_client(email, password)
+    t = Tado(email, password)
     return t
 
 
 def get_me(args):
-    t = log_in(args.email, args.password)
-    me = tado_client.getMe(t)
+    t = Tado(args.email, args.password)
+    me = t.get_me()
     print(me)
 
 
 def get_state(args):
-    t = log_in(args.email, args.password)
-    zone = tado_client.get_state(t, int(args.zone))
+    t = Tado(args.email, args.password)
+    zone = t.get_state(int(args.zone))
     print(zone)
 
 
 def get_states(args):
-    t = log_in(args.email, args.password)
-    zone = tado_client.getZoneStates(t)
+    t = Tado(args.email, args.password)
+    zone = t.get_zone_states()
     print(zone)
 
 
 def get_capabilities(args):
-    t = log_in(args.email, args.password)
-    capabilities = tado_client.get_capabilities(t, int(args.zone))
+    t = Tado(args.email, args.password)
+    capabilities = t.get_capabilities(int(args.zone))
     print(capabilities)
 
 
@@ -59,13 +59,13 @@ def main():
     )
 
     # Flags with default values go here.
-    loglevels = dict(
+    log_levels = dict(
         (logging.getLevelName(level), level) for level in [10, 20, 30, 40, 50]
     )
     parser.add_argument(
         "--loglevel",
         default="INFO",
-        choices=list(loglevels.keys()),
+        choices=list(log_levels.keys()),
         help="Logging level to print to the console.",
     )
 
@@ -100,7 +100,7 @@ def main():
     args = parser.parse_args()
 
     logging.basicConfig(
-        level=loglevels[args.loglevel],
+        level=log_levels[args.loglevel],
         format="%(levelname)s:\t%(name)s\t%(message)s",
     )
 

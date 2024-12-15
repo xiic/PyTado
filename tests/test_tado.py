@@ -9,11 +9,12 @@ from . import common
 
 
 class TadoTestCase(unittest.TestCase):
+    """Test cases for tado class"""
 
     def setUp(self) -> None:
         super().setUp()
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(1, "foo")
+            "PyTado.http.http.Http._login", return_value=(1, False, "foo")
         )
         get_me_patch = mock.patch("PyTado.interface.Tado.get_me")
         login_patch.start()

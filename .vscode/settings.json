@@ -2,5 +2,11 @@
     "python.linting.pylintEnabled": true,
     "cSpell.words": [
         "Tado"
-    ]
+    ],
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "ansible.python.interpreterPath": "/Volumes/Daten/Projects/PyTado/.venv/bin/python"
 }
