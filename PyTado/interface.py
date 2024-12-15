@@ -610,12 +610,12 @@ class Tado:
         Set current overlay for a zone
         """
 
-        post_data = {
-            "setting": {"type": device_type, "power": power},
-            "termination": {"type": overlay_mode},
-        }
-
         if self.http.isX:
+            post_data = {
+                "setting": {"type": device_type, "power": power},
+                "termination": {"type": overlay_mode},
+            }
+            
             if set_temp is not None:
                 post_data["setting"]["temperature"] = {"value": set_temp, "valueRaw": set_temp, "precision": 0.1}
 
@@ -629,6 +629,10 @@ class Tado:
 
             return self.http.request(request)
 
+        post_data = {
+            "setting": {"type": device_type, "power": power},
+            "termination": {"typeSkillBasedApp": overlay_mode},
+        }
 
         if set_temp is not None:
             post_data["setting"]["temperature"] = {"celsius": set_temp}
