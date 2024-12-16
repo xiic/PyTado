@@ -7,7 +7,7 @@ import json
 import logging
 import pprint
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 import requests
 
@@ -51,16 +51,16 @@ class Mode(enum.Enum):
 
 
 class TadoRequest:
-    """Data Container for MY API Requests"""
+    """Data Container for my.tado.com API Requests"""
 
     def __init__(
         self,
         endpoint: Endpoint = Endpoint.MY_API,
-        command: Optional[str] = None,
+        command: str | None = None,
         action: Action = Action.GET,
-        payload: Optional[Dict[str, Any]] = None,
+        payload: dict[str, Any] | None = None,
         domain: Domain = Domain.HOME,
-        device: Optional[int] = None,
+        device: int | None = None,
         mode: Mode = Mode.OBJECT,
     ):
         self.endpoint = endpoint
@@ -73,22 +73,20 @@ class TadoRequest:
 
 
 class TadoXRequest(TadoRequest):
-    """Data Container for HOPS (Tado X) API Requests"""
+    """Data Container for hops.tado.com (Tado X) API Requests"""
 
     def __init__(
         self,
-        command: Optional[str] = None,
+        endpoint: Endpoint = Endpoint.HOPS_API,
+        command: str | None = None,
         action: Action = Action.GET,
-        payload: Optional[Dict[str, Any]] = None,
+        payload: dict[str, Any] | None = None,
         domain: Domain = Domain.HOME,
-        device: Optional[int] = None,
+        device: int | None = None,
         mode: Mode = Mode.OBJECT,
     ):
-        if action == Action.CHANGE:
-            action = "PATCH"
-
         super().__init__(
-            endpoint=Endpoint.HOPS_API,
+            endpoint=endpoint,
             command=command,
             action=action,
             payload=payload,
@@ -96,6 +94,19 @@ class TadoXRequest(TadoRequest):
             device=device,
             mode=mode,
         )
+        self._action = action
+
+    @property
+    def action(self) -> str:
+        """Get request action for Tado X"""
+        if self._action == Action.CHANGE:
+            return "PATCH"
+        return self._action
+
+    @action.setter
+    def action(self, value: Action):
+        """Set request action"""
+        self._action = value
 
 
 class TadoResponse:
@@ -299,7 +310,7 @@ class Http:
         if response.status_code == 200:
             refresh_token = self._set_oauth_header(response.json())
             id_ = self._get_id()
-            x_api_ = self._check_x_api()
+            x_api_ = self._check_x_line_generation()
 
             return id_, x_api_, refresh_token
 
@@ -309,7 +320,7 @@ class Http:
         request.domain = Domain.ME
         return self.request(request)["homes"][0]["id"]
 
-    def _check_x_api(self):
+    def _check_x_line_generation(self):
         # get home info
         request = TadoRequest()
         request.action = Action.GET

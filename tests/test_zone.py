@@ -4,7 +4,7 @@ import json
 import unittest
 from unittest import mock
 
-from PyTado.interface import Tado
+from PyTado.interface.interface import Tado
 from . import common
 
 
