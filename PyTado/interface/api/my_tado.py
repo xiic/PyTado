@@ -5,11 +5,12 @@ PyTado interface implementation for app.tado.com.
 import enum
 import datetime
 import logging
+
 from typing import Any
 
-from PyTado.logging import Logger
-from PyTado.exceptions import TadoNotSupportedException
-from PyTado.http import (
+from ...logging import Logger
+from ...exceptions import TadoNotSupportedException
+from ...http import (
     Action,
     Domain,
     Endpoint,
@@ -17,7 +18,7 @@ from PyTado.http import (
     Mode,
     TadoRequest,
 )
-from PyTado.zone import TadoZone
+from ...zone import TadoZone
 
 
 class Timetable(enum.IntEnum):
@@ -29,6 +30,8 @@ class Timetable(enum.IntEnum):
 
 
 class Presence(enum.StrEnum):
+    """Presence Enum"""
+
     HOME = "HOME"
     AWAY = "AWAY"
 
@@ -36,10 +39,12 @@ class Presence(enum.StrEnum):
 _LOGGER = Logger(__name__)
 
 
-class MyTado:
+class Tado:
     """Interacts with a Tado thermostat via public my.tado.com API.
-    Example usage: t = Tado('me@somewhere.com', 'mypasswd')
-                   t.getClimate(1) # Get climate, zone 1.
+
+    Example usage: http = Http('me@somewhere.com', 'mypasswd')
+                   t = Tado(http)
+                   t.get_climate(1) # Get climate, zone 1.
     """
 
     def __init__(
@@ -97,8 +102,6 @@ class MyTado:
         """
         Gets current state of Zone as a TadoZone object.
         """
-        if self._http._x_api:
-            return TadoZone(self.get_state(zone), zone, x_api=True)
 
         return TadoZone.from_data(zone, self.get_state(zone))
 
@@ -210,7 +213,9 @@ class MyTado:
         data = self._http.request(request)
 
         if "id" not in data:
-            raise Exception(f'Returned data did not contain "id" : {str(data)}')
+            raise TadoException(
+                f'Returned data did not contain "id" : {str(data)}'
+            )
 
         return Timetable(data["id"])
 
@@ -221,8 +226,10 @@ class MyTado:
 
         try:
             day = datetime.datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            raise ValueError("Incorrect date format, should be YYYY-MM-DD")
+        except ValueError as err:
+            raise ValueError(
+                "Incorrect date format, should be YYYY-MM-DD"
+            ) from err
 
         request = self._create_request()
         request.command = (
@@ -237,6 +244,7 @@ class MyTado:
         id = 1 : THREE_DAY (MONDAY_TO_FRIDAY, SATURDAY, SUNDAY)
         id = 3 : SEVEN_DAY (MONDAY, TUESDAY, WEDNESDAY ...)
         """
+
         request = self._create_request()
         request.command = f"zones/{zone:d}/schedule/activeTimetable"
         request.action = Action.CHANGE
@@ -269,6 +277,7 @@ class MyTado:
         """
         Set the schedule for a zone, day is required
         """
+
         request = self._create_request()
         request.command = (
             f"zones/{zone:d}/schedule/timetables/{timetable:d}/blocks/{day}"
@@ -484,6 +493,7 @@ class MyTado:
         Gets information about devices
         with option to get specific info i.e. cmd='temperatureOffset'
         """
+
         request = self._create_request()
         request.command = cmd
         request.action = Action.GET

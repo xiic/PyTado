@@ -6,27 +6,29 @@ import logging
 
 from typing import Any
 
-from PyTado.interface import Timetable
-from PyTado.interface.api import MyTado
-from PyTado.logging import Logger
-from PyTado.exceptions import TadoNotSupportedException
-from PyTado.http import (
+from .my_tado import Tado, Timetable
+
+from ...logging import Logger
+from ...exceptions import TadoNotSupportedException
+from ...http import (
     Action,
     Http,
     Mode,
     TadoRequest,
     TadoXRequest,
 )
-from PyTado.zone import TadoZone
+from ...zone import TadoZone, TadoXZone
 
 
 _LOGGER = Logger(__name__)
 
 
-class HopsTado(MyTado):
-    """Interacts with a Tado thermostat via public API.
-    Example usage: t = Tado('me@somewhere.com', 'mypasswd')
-                   t.getClimate(1) # Get climate, zone 1.
+class TadoX(Tado):
+    """Interacts with a Tado thermostat via hops.tado.com (Tado X) API.
+
+    Example usage: http = Http('me@somewhere.com', 'mypasswd')
+                   t = TadoX(http)
+                   t.get_climate(1) # Get climate, zone 1.
     """
 
     def __init__(
@@ -35,6 +37,13 @@ class HopsTado(MyTado):
         debug: bool = False,
     ):
         """Class Constructor"""
+
+        super().__init__(http=http, debug=debug)
+
+        if not http.is_x_line:
+            raise TadoNotSupportedException(
+                "TadoX is only usable with LINE_X Generation"
+            )
 
         if debug:
             _LOGGER.setLevel(logging.DEBUG)
@@ -54,11 +63,13 @@ class HopsTado(MyTado):
         """
         Gets device information.
         """
+
         request = self._create_request()
         request.command = "roomsAndDevices"
 
         rooms: list[dict[str, Any]] = self._http.request(request)["rooms"]
         devices = [device for room in rooms for device in room["devices"]]
+
         return devices
 
     def get_zones(self):
@@ -68,14 +79,15 @@ class HopsTado(MyTado):
 
         request = self._create_request()
         request.command = "roomsAndDevices"
+
         return self._http.request(request)["rooms"]
 
     def get_zone_state(self, zone: int) -> TadoZone:
         """
-        Gets current state of Zone as a TadoZone object.
+        Gets current state of Zone as a TadoXZone object.
         """
 
-        return TadoZone(self.get_state(zone), zone)
+        return TadoXZone.from_data(zone, self.get_state(zone))
 
     def get_zone_states(self):
         """
@@ -93,7 +105,7 @@ class HopsTado(MyTado):
         """
 
         request = self._create_request()
-        request.command = f"rooms/{zone}"
+        request.command = f"rooms/{zone:d}"
         data = self._http.request(request)
 
         return data
@@ -138,7 +150,9 @@ class HopsTado(MyTado):
         Zone has 3 different schedules, one for each timetable (see setTimetable)
         """
 
-        request = self._create_request(command=f"rooms/{zone}/schedule")
+        request = self._create_request()
+        request.command = f"rooms/{zone:d}/schedule"
+
         return self._http.request(request)
 
     def set_schedule(self, zone, timetable: Timetable, day, data):
@@ -146,12 +160,11 @@ class HopsTado(MyTado):
         Set the schedule for a zone, day is required
         """
 
-        request = self._create_request(
-            action=Action.SET,
-            command=f"rooms/{zone}/schedule",
-            payload=data,
-            mode=Mode.OBJECT,
-        )
+        request = self._create_request()
+        request.command = f"rooms/{zone:d}/schedule"
+        request.action = Action.SET
+        request.payload = data
+        request.mode = Mode.OBJECT
 
         return self._http.request(request)
 
@@ -160,9 +173,9 @@ class HopsTado(MyTado):
         Delete current overlay
         """
 
-        request = self._create_request(
-            command=f"rooms/{zone}/resumeSchedule", action=Action.SET
-        )
+        request = self._create_request()
+        request.command = f"rooms/{zone:d}/resumeSchedule"
+        request.action = Action.SET
 
         return self._http.request(request)
 
@@ -201,7 +214,7 @@ class HopsTado(MyTado):
             post_data["termination"]["durationInSeconds"] = duration
 
         request = self._create_request()
-        request.command = f"rooms/{zone}/manualControl"
+        request.command = f"rooms/{zone:d}/manualControl"
         request.action = Action.SET
         request.payload = post_data
 
@@ -267,4 +280,4 @@ class HopsTado(MyTado):
         request.action = Action.CHANGE
         request.payload = {"temperatureOffset": offset}
 
-        return self.http.request(request)
+        return self._http.request(request)

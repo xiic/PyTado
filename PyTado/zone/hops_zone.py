@@ -16,7 +16,7 @@ from PyTado.const import (
     CONST_MODE_OFF,
     CONST_VERTICAL_SWING_OFF,
 )
-from PyTado.zone import TadoZone
+from .my_zone import TadoZone
 
 
 _LOGGER = logging.getLogger(__name__)

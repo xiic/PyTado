@@ -199,7 +199,7 @@ class Http:
 
         return response.json()
 
-    def is_x_api(self):
+    def is_x_line(self):
         return self._x_api
 
     def _configure_url(self, request: TadoRequest) -> str:
