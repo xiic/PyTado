@@ -1,8 +1,8 @@
 ---
 name: Bug Report
-description: Report a bug to help improve PyTado.
-title: '[Bug]: '
-labels: 'bug'
+about: Report a bug to help improve PyTado.
+title: "[Bug]: "
+labels: bug
 assignees: ''
 ---
 
