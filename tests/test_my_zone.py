@@ -4,9 +4,10 @@ import json
 import unittest
 from unittest import mock
 
-from PyTado.http import Http
-from PyTado.interface.interface import Tado
 from . import common
+
+from PyTado.http import Http
+from PyTado.interface.api import Tado
 
 
 class TadoTestCase(unittest.TestCase):

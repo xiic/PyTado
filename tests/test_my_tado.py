@@ -1,4 +1,4 @@
-"""Test the Tado object."""
+"""Test the interface.api.Tado object."""
 
 import json
 import unittest
@@ -16,7 +16,7 @@ class TadoTestCase(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         login_patch = mock.patch(
-            "PyTado.http.http.Http._login", return_value=(1, False, "foo")
+            "PyTado.http.Http._login", return_value=(1, False, "foo")
         )
         get_me_patch = mock.patch("PyTado.interface.api.Tado.get_me")
         login_patch.start()
@@ -25,7 +25,6 @@ class TadoTestCase(unittest.TestCase):
         self.addCleanup(get_me_patch.stop)
 
         self.http = Http("my@username.com", "mypassword")
-
         self.tado_client = Tado(self.http)
 
     def test_home_set_to_manual_mode(
