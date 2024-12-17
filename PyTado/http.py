@@ -20,15 +20,9 @@ _LOGGER = Logger(__name__)
 class Endpoint(enum.StrEnum):
     """Endpoint URL Enum"""
 
-    API = "https://my.tado.com/api/v2/"
+    MY_API = "https://my.tado.com/api/v2/"
+    HOPS_API = "https://hops.tado.com/"
     MOBILE = "https://my.tado.com/mobile/1.9/"
-    EIQ = "https://energy-insights.tado.com/api/"
-
-
-class EndpointX(enum.StrEnum):
-    """Endpoint URL Enum"""
-
-    API = "https://hops.tado.com/"
     EIQ = "https://energy-insights.tado.com/api/"
 
 
@@ -47,7 +41,6 @@ class Action(enum.StrEnum):
     SET = "POST"
     RESET = "DELETE"
     CHANGE = "PUT"
-    UPDATE = "PATCH"
 
 
 class Mode(enum.Enum):
@@ -58,27 +51,62 @@ class Mode(enum.Enum):
 
 
 class TadoRequest:
-    """Data Container"""
+    """Data Container for my.tado.com API Requests"""
 
-    endpoint: Endpoint = Endpoint.API
-    command: str | None = None
-    action: Action = Action.GET
-    payload: dict[str, Any] | None = None
-    domain: Domain = Domain.HOME
-    device: int | None = None
-    mode: Mode = Mode.OBJECT
+    def __init__(
+        self,
+        endpoint: Endpoint = Endpoint.MY_API,
+        command: str | None = None,
+        action: Action = Action.GET,
+        payload: dict[str, Any] | None = None,
+        domain: Domain = Domain.HOME,
+        device: int | None = None,
+        mode: Mode = Mode.OBJECT,
+    ):
+        self.endpoint = endpoint
+        self.command = command
+        self.action = action
+        self.payload = payload
+        self.domain = domain
+        self.device = device
+        self.mode = mode
 
 
-class TadoXRequest:
-    """Data Container"""
+class TadoXRequest(TadoRequest):
+    """Data Container for hops.tado.com (Tado X) API Requests"""
 
-    endpoint: EndpointX = EndpointX.API
-    command: str | None = None
-    action: Action = Action.GET
-    payload: dict[str, Any] | None = None
-    domain: Domain = Domain.HOME
-    device: int | None = None
-    mode: Mode = Mode.OBJECT
+    def __init__(
+        self,
+        endpoint: Endpoint = Endpoint.HOPS_API,
+        command: str | None = None,
+        action: Action = Action.GET,
+        payload: dict[str, Any] | None = None,
+        domain: Domain = Domain.HOME,
+        device: int | None = None,
+        mode: Mode = Mode.OBJECT,
+    ):
+        super().__init__(
+            endpoint=endpoint,
+            command=command,
+            action=action,
+            payload=payload,
+            domain=domain,
+            device=device,
+            mode=mode,
+        )
+        self._action = action
+
+    @property
+    def action(self) -> str:
+        """Get request action for Tado X"""
+        if self._action == Action.CHANGE:
+            return "PATCH"
+        return self._action
+
+    @action.setter
+    def action(self, value: Action):
+        """Set request action"""
+        self._action = value
 
 
 class TadoResponse:
@@ -170,6 +198,10 @@ class Http:
             return {}
 
         return response.json()
+
+    @property
+    def is_x_line(self):
+        return self._x_api
 
     def _configure_url(self, request: TadoRequest) -> str:
         if request.endpoint == Endpoint.MOBILE:
@@ -279,7 +311,7 @@ class Http:
         if response.status_code == 200:
             refresh_token = self._set_oauth_header(response.json())
             id_ = self._get_id()
-            x_api_ = self._check_x_api()
+            x_api_ = self._check_x_line_generation()
 
             return id_, x_api_, refresh_token
 
@@ -289,7 +321,7 @@ class Http:
         request.domain = Domain.ME
         return self.request(request)["homes"][0]["id"]
 
-    def _check_x_api(self):
+    def _check_x_line_generation(self):
         # get home info
         request = TadoRequest()
         request.action = Action.GET

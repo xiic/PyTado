@@ -4,11 +4,13 @@ import json
 import unittest
 from unittest import mock
 
-from PyTado.interface import Tado
 from . import common
 
+from PyTado.http import Http
+from PyTado.interface.api import Tado
 
-class TadoTestCase(unittest.TestCase):
+
+class TadoZoneTestCase(unittest.TestCase):
     """Test cases for zone class"""
 
     def setUp(self) -> None:
@@ -16,17 +18,18 @@ class TadoTestCase(unittest.TestCase):
         login_patch = mock.patch(
             "PyTado.http.Http._login", return_value=(1, False, "foo")
         )
-        get_me_patch = mock.patch("PyTado.interface.Tado.get_me")
+        get_me_patch = mock.patch("PyTado.interface.api.Tado.get_me")
         login_patch.start()
         get_me_patch.start()
         self.addCleanup(login_patch.stop)
         self.addCleanup(get_me_patch.stop)
 
-        self.tado_client = Tado("my@username.com", "mypassword")
+        self.http = Http("my@username.com", "mypassword")
+        self.tado_client = Tado(self.http)
 
     def set_fixture(self, filename: str) -> None:
         get_state_patch = mock.patch(
-            "PyTado.interface.Tado.get_state",
+            "PyTado.interface.api.Tado.get_state",
             return_value=json.loads(common.load_fixture(filename)),
         )
         get_state_patch.start()

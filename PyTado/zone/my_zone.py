@@ -1,10 +1,12 @@
-"""Adapter to represent a tado zones and state."""
+"""
+Adapter to represent a tado zones and state for my.tado.com API.
+"""
 
 import dataclasses
 import logging
 from typing import Any, Self
 
-from .const import (
+from PyTado.const import (
     CONST_FAN_AUTO,
     CONST_FAN_OFF,
     CONST_HVAC_COOL,
@@ -12,7 +14,6 @@ from .const import (
     CONST_HVAC_IDLE,
     CONST_HVAC_OFF,
     CONST_LINK_OFFLINE,
-    CONST_MODE_HEAT,
     CONST_MODE_OFF,
     CONST_MODE_SMART_SCHEDULE,
     DEFAULT_TADO_PRECISION,
@@ -30,7 +31,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class TadoZone:
-    """Tado Zone data structure."""
+    """Tado Zone data structure for my.tado.com."""
 
     zone_id: int
     current_temp: float | None = None
@@ -66,7 +67,6 @@ class TadoZone:
     precision: float = DEFAULT_TADO_PRECISION
     default_overlay_termination_type = None
     default_overlay_termination_duration = None
-    x_api: bool = False
 
     @property
     def overlay_active(self) -> bool:

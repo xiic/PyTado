@@ -1,15 +1,16 @@
 """
-PyTado interface implementation for app.tado.com
+PyTado interface implementation for app.tado.com.
 """
 
 import enum
 import datetime
 import logging
+
 from typing import Any
 
-from .logging import Logger
-from .exceptions import TadoNotSupportedException
-from .http import (
+from ...logging import Logger
+from ...exceptions import TadoNotSupportedException
+from ...http import (
     Action,
     Domain,
     Endpoint,
@@ -17,7 +18,7 @@ from .http import (
     Mode,
     TadoRequest,
 )
-from .zone import TadoZone
+from ...zone import TadoZone
 
 
 class Timetable(enum.IntEnum):
@@ -29,6 +30,8 @@ class Timetable(enum.IntEnum):
 
 
 class Presence(enum.StrEnum):
+    """Presence Enum"""
+
     HOME = "HOME"
     AWAY = "AWAY"
 
@@ -37,16 +40,16 @@ _LOGGER = Logger(__name__)
 
 
 class Tado:
-    """Interacts with a Tado thermostat via public API.
-    Example usage: t = Tado('me@somewhere.com', 'mypasswd')
-                   t.getClimate(1) # Get climate, zone 1.
+    """Interacts with a Tado thermostat via public my.tado.com API.
+
+    Example usage: http = Http('me@somewhere.com', 'mypasswd')
+                   t = Tado(http)
+                   t.get_climate(1) # Get climate, zone 1.
     """
 
     def __init__(
         self,
-        username: str,
-        password: str,
-        http_session=None,
+        http: Http,
         debug: bool = False,
     ):
         """Class Constructor"""
@@ -56,22 +59,21 @@ class Tado:
         else:
             _LOGGER.setLevel(logging.WARNING)
 
-        self._http = Http(
-            username=username,
-            password=password,
-            http_session=http_session,
-            debug=debug,
-        )
+        self._http = http
+
         # Track whether the user's Tado instance supports auto-geofencing,
         # set to None until explicitly set
         self._auto_geofencing_supported = None
+
+    def _create_request(self) -> TadoRequest:
+        return TadoRequest()
 
     def get_me(self):
         """
         Gets home information.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.action = Action.GET
         request.domain = Domain.ME
 
@@ -82,7 +84,7 @@ class Tado:
         Gets device information.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "devices"
         return self._http.request(request)
 
@@ -91,7 +93,7 @@ class Tado:
         Gets zones information.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "zones"
 
         return self._http.request(request)
@@ -100,8 +102,6 @@ class Tado:
         """
         Gets current state of Zone as a TadoZone object.
         """
-        if self._http._x_api:
-            return TadoZone(self.get_state(zone), zone, x_api=True)
 
         return TadoZone.from_data(zone, self.get_state(zone))
 
@@ -110,7 +110,7 @@ class Tado:
         Gets current states of all zones.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "zoneStates"
 
         return self._http.request(request)
@@ -120,7 +120,7 @@ class Tado:
         Gets current state of Zone.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone}/state"
         data = {
             **self._http.request(request),
@@ -150,7 +150,7 @@ class Tado:
         # indicates whether presence is current locked (manually set) to
         # HOME or AWAY or not locked (automatically set based on geolocation)
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "state"
         data = self._http.request(request)
 
@@ -186,7 +186,7 @@ class Tado:
         Gets current capabilities of zone.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/capabilities"
 
         return self._http.request(request)
@@ -207,13 +207,15 @@ class Tado:
         Get the Timetable type currently active
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/schedule/activeTimetable"
         request.mode = Mode.PLAIN
         data = self._http.request(request)
 
         if "id" not in data:
-            raise Exception(f'Returned data did not contain "id" : {str(data)}')
+            raise TadoException(
+                f'Returned data did not contain "id" : {str(data)}'
+            )
 
         return Timetable(data["id"])
 
@@ -224,10 +226,12 @@ class Tado:
 
         try:
             day = datetime.datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            raise ValueError("Incorrect date format, should be YYYY-MM-DD")
+        except ValueError as err:
+            raise ValueError(
+                "Incorrect date format, should be YYYY-MM-DD"
+            ) from err
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = (
             f"zones/{zone:d}/dayReport?date={day.strftime('%Y-%m-%d')}"
         )
@@ -240,7 +244,8 @@ class Tado:
         id = 1 : THREE_DAY (MONDAY_TO_FRIDAY, SATURDAY, SUNDAY)
         id = 3 : SEVEN_DAY (MONDAY, TUESDAY, WEDNESDAY ...)
         """
-        request = TadoRequest()
+
+        request = self._create_request()
         request.command = f"zones/{zone:d}/schedule/activeTimetable"
         request.action = Action.CHANGE
         request.payload = {"id": timetable}
@@ -255,7 +260,7 @@ class Tado:
         Get the JSON representation of the schedule for a zone.
         Zone has 3 different schedules, one for each timetable (see setTimetable)
         """
-        request = TadoRequest()
+        request = self._create_request()
         if day:
             request.command = (
                 f"zones/{zone:d}/schedule/timetables/{timetable:d}/blocks/{day}"
@@ -272,7 +277,8 @@ class Tado:
         """
         Set the schedule for a zone, day is required
         """
-        request = TadoRequest()
+
+        request = self._create_request()
         request.command = (
             f"zones/{zone:d}/schedule/timetables/{timetable:d}/blocks/{day}"
         )
@@ -287,7 +293,7 @@ class Tado:
         Gets outside weather data
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "weather"
 
         return self._http.request(request)
@@ -297,7 +303,7 @@ class Tado:
         Gets air quality information
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "airComfort"
 
         return self._http.request(request)
@@ -307,7 +313,7 @@ class Tado:
         Gets active users in home
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "users"
 
         return self._http.request(request)
@@ -317,7 +323,7 @@ class Tado:
         Gets information about mobile devices
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "mobileDevices"
 
         return self._http.request(request)
@@ -327,7 +333,7 @@ class Tado:
         Delete current overlay
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/overlay"
         request.action = Action.RESET
         request.mode = Mode.PLAIN
@@ -378,7 +384,7 @@ class Tado:
         if duration is not None:
             post_data["termination"]["durationInSeconds"] = duration
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/overlay"
         request.action = Action.CHANGE
         request.payload = post_data
@@ -390,7 +396,7 @@ class Tado:
         Get current overlay default settings for zone.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/defaultOverlay"
 
         return self._http.request(request)
@@ -414,7 +420,7 @@ class Tado:
         Sets HomeState to presence
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "presenceLock"
         request.action = Action.CHANGE
         request.payload = {"homePresence": presence}
@@ -428,7 +434,7 @@ class Tado:
 
         # Only attempt to set Auto Geofencing if it is believed to be supported
         if self._auto_geofencing_supported:
-            request = TadoRequest()
+            request = self._create_request()
             request.command = "presenceLock"
             request.action = Action.RESET
 
@@ -463,7 +469,7 @@ class Tado:
         Note: This can only be set if an open window was detected in this zone
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/state/openWindow/activate"
         request.action = Action.SET
         request.mode = Mode.PLAIN
@@ -475,7 +481,7 @@ class Tado:
         Sets the window in zone to closed
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/state/openWindow"
         request.action = Action.RESET
         request.mode = Mode.PLAIN
@@ -487,7 +493,8 @@ class Tado:
         Gets information about devices
         with option to get specific info i.e. cmd='temperatureOffset'
         """
-        request = TadoRequest()
+
+        request = self._create_request()
         request.command = cmd
         request.action = Action.GET
         request.domain = Domain.DEVICES
@@ -500,7 +507,7 @@ class Tado:
         Set the Temperature offset on the device.
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "temperatureOffset"
         request.action = Action.CHANGE
         request.domain = Domain.DEVICES
@@ -514,7 +521,7 @@ class Tado:
         Get Energy IQ tariff history
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "tariffs"
         request.action = Action.GET
         request.endpoint = Endpoint.EIQ
@@ -526,7 +533,7 @@ class Tado:
         Get Energy IQ meter readings
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "meterReadings"
         request.action = Action.GET
         request.endpoint = Endpoint.EIQ
@@ -540,7 +547,7 @@ class Tado:
         Send Meter Readings to Tado, date format is YYYY-MM-DD, reading is without decimals
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "meterReadings"
         request.action = Action.SET
         request.endpoint = Endpoint.EIQ
@@ -578,7 +585,7 @@ class Tado:
                 "startDate": from_date,
             }
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "tariffs"
         request.action = Action.SET
         request.endpoint = Endpoint.EIQ
@@ -591,7 +598,7 @@ class Tado:
         Gets available heating circuits
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = "heatingCircuits"
 
         return self._http.request(request)
@@ -601,7 +608,7 @@ class Tado:
         Get zone control information
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/control"
 
         return self._http.request(request)
@@ -611,7 +618,7 @@ class Tado:
         Sets the heating circuit for a zone
         """
 
-        request = TadoRequest()
+        request = self._create_request()
         request.command = f"zones/{zone:d}/control/heatingCircuit"
         request.action = Action.CHANGE
         request.payload = {"circuitNumber": heating_circuit}
