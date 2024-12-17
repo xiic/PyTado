@@ -199,6 +199,7 @@ class Http:
 
         return response.json()
 
+    @property
     def is_x_line(self):
         return self._x_api
 

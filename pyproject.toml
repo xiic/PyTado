@@ -30,7 +30,7 @@ classifiers = [
 GitHub = "https://github.com/wmalgadey/PyTado"
 
 [project.optional-dependencies]
-dev = ["black>=24.3", "pytype", "pylint", "types-requests", "pytest"]
+dev = ["black>=24.3", "pytype", "pylint", "types-requests", "coverage", "pytest", "pytest-cov"]
 
 [project.scripts]
 pytado = "pytado.__main__:main"
