@@ -10,7 +10,7 @@ from PyTado.http import Http
 from PyTado.interface.api import Tado
 
 
-class TadoTestCase(unittest.TestCase):
+class TadoZoneTestCase(unittest.TestCase):
     """Test cases for zone class"""
 
     def setUp(self) -> None:
