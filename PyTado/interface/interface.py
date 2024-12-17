@@ -36,4 +36,4 @@ class Tado:
 
     def __getattr__(self, name):
         """Delegiert den Aufruf von Methoden an die richtige API-Client-Implementierung."""
-        return getattr(self.client, name)
+        return getattr(self._api, name)
