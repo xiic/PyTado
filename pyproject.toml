@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-tado"
-version = "0.18.1"
+version = "0.18.2"
 description = "PyTado from chrism0dwk, modfied by w.malgadey, diplix, michaelarnauts, LenhartStephan, splifter, syssi, andersonshatch, Yippy, p0thi, Coffee2CodeNL, chiefdragon, FilBr, nikilase, albertomontesg, Moritz-Schmidt, palazzem"
 authors = [
     { name = "Chris Jewell", email = "chrism0dwk@gmail.com" },
     { name = "w.malgadey", email = "w.malgadey@gmail.com" },
+    { name = "FilBr", email = "filippo.barba@protonmail.com" },
 ]
 dependencies = ["requests"]
 requires-python = ">=3.11"
