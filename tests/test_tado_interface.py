@@ -14,7 +14,7 @@ class TestTadoInterface(unittest.TestCase):
 
     def test_interface_with_tado_api(self):
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(1, False, "foo")
+            "PyTado.http.Http._login", return_value=(False, "foo")
         )
         login_mock = login_patch.start()
         self.addCleanup(login_patch.stop)
@@ -38,7 +38,7 @@ class TestTadoInterface(unittest.TestCase):
 
     def test_interface_with_tadox_api(self):
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(1, True, "foo")
+            "PyTado.http.Http._login", return_value=(True, "foo")
         )
         login_mock = login_patch.start()
         self.addCleanup(login_patch.stop)
@@ -56,7 +56,7 @@ class TestTadoInterface(unittest.TestCase):
 
     def test_error_handling_on_api_calls(self):
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(1, False, "foo")
+            "PyTado.http.Http._login", return_value=(False, "foo")
         )
         login_patch.start()
         self.addCleanup(login_patch.stop)
