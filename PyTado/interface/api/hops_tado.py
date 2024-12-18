@@ -56,7 +56,7 @@ class TadoX(Tado):
         # set to None until explicitly set
         self._auto_geofencing_supported = None
 
-    def _create_request(self) -> TadoRequest:
+    def _create_x_request(self) -> TadoRequest:
         return TadoXRequest()
 
     def get_devices(self):
@@ -64,7 +64,7 @@ class TadoX(Tado):
         Gets device information.
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = "roomsAndDevices"
 
         rooms: list[dict[str, Any]] = self._http.request(request)["rooms"]
@@ -77,7 +77,7 @@ class TadoX(Tado):
         Gets zones information.
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = "roomsAndDevices"
 
         return self._http.request(request)["rooms"]
@@ -94,7 +94,7 @@ class TadoX(Tado):
         Gets current states of all zones.
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = "rooms"
 
         return self._http.request(request)
@@ -104,7 +104,7 @@ class TadoX(Tado):
         Gets current state of Zone.
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = f"rooms/{zone:d}"
         data = self._http.request(request)
 
@@ -150,7 +150,7 @@ class TadoX(Tado):
         Zone has 3 different schedules, one for each timetable (see setTimetable)
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = f"rooms/{zone:d}/schedule"
 
         return self._http.request(request)
@@ -160,7 +160,7 @@ class TadoX(Tado):
         Set the schedule for a zone, day is required
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = f"rooms/{zone:d}/schedule"
         request.action = Action.SET
         request.payload = data
@@ -173,7 +173,7 @@ class TadoX(Tado):
         Delete current overlay
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = f"rooms/{zone:d}/resumeSchedule"
         request.action = Action.SET
 
@@ -213,7 +213,7 @@ class TadoX(Tado):
         if duration is not None:
             post_data["termination"]["durationInSeconds"] = duration
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = f"rooms/{zone:d}/manualControl"
         request.action = Action.SET
         request.payload = post_data
@@ -236,7 +236,7 @@ class TadoX(Tado):
 
         data = self.get_state(zone)
 
-        if "activated" in data["openWindow"]:
+        if data["openWindow"] and "activated" in data["openWindow"]:
             return {"openWindowDetected": True}
         else:
             return {"openWindowDetected": False}
@@ -275,7 +275,7 @@ class TadoX(Tado):
         Set the Temperature offset on the device.
         """
 
-        request = self._create_request()
+        request = self._create_x_request()
         request.command = f"roomsAndDevices/devices/{device_id}"
         request.action = Action.CHANGE
         request.payload = {"temperatureOffset": offset}
