@@ -7,7 +7,6 @@ import logging
 from typing import Any, Self
 
 from PyTado.const import (
-    CONST_HORIZONTAL_SWING_OFF,
     CONST_HVAC_HEAT,
     CONST_HVAC_IDLE,
     CONST_HVAC_OFF,
@@ -15,6 +14,7 @@ from PyTado.const import (
     CONST_MODE_HEAT,
     CONST_MODE_OFF,
     CONST_VERTICAL_SWING_OFF,
+    CONST_HORIZONTAL_SWING_OFF,
 )
 from .my_zone import TadoZone
 
@@ -127,16 +127,18 @@ class TadoXZone(TadoZone):
                     kwargs["overlay_termination_timestamp"] = None
 
         # Connection state and availability
-        kwargs["connection"] = data.get("connectionState", {}).get("value")
+        kwargs["connection"] = data.get("connectionState", {}).get(
+            "value", None
+        )
         kwargs["available"] = kwargs.get("link") != CONST_LINK_OFFLINE
 
         # Termination conditions
         if "terminationCondition" in data:
             kwargs["default_overlay_termination_type"] = data[
                 "terminationCondition"
-            ].get("type")
+            ].get("type", None)
             kwargs["default_overlay_termination_duration"] = data[
                 "terminationCondition"
-            ].get("durationInSeconds")
+            ].get("durationInSeconds", None)
 
         return cls(zone_id=zone_id, **kwargs)

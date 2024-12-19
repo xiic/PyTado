@@ -82,8 +82,9 @@ class TadoZone:
             sensor_data = data["sensorDataPoints"]
 
             if "insideTemperature" in sensor_data:
-                temperature = float(sensor_data["insideTemperature"]["celsius"])
-                kwargs["current_temp"] = temperature
+                kwargs["current_temp"] = float(
+                    sensor_data["insideTemperature"]["celsius"]
+                )
                 kwargs["current_temp_timestamp"] = sensor_data[
                     "insideTemperature"
                 ]["timestamp"]
@@ -115,21 +116,23 @@ class TadoZone:
                 "temperature" in data["setting"]
                 and data["setting"]["temperature"] is not None
             ):
-                target_temperature = float(
+                kwargs["target_temp"] = float(
                     data["setting"]["temperature"]["celsius"]
                 )
-                kwargs["target_temp"] = target_temperature
 
             setting = data["setting"]
 
-            kwargs["current_fan_speed"] = None
-            kwargs["current_fan_level"] = None
-            # If there is no overlay, the mode will always be
-            # "SMART_SCHEDULE"
-            kwargs["current_hvac_mode"] = CONST_MODE_OFF
-            kwargs["current_swing_mode"] = CONST_MODE_OFF
-            kwargs["current_vertical_swing_mode"] = CONST_VERTICAL_SWING_OFF
-            kwargs["current_horizontal_swing_mode"] = CONST_HORIZONTAL_SWING_OFF
+            # Reset modes and settings
+            kwargs.update(
+                {
+                    "current_fan_speed": None,
+                    "current_fan_level": None,
+                    "current_hvac_mode": CONST_MODE_OFF,
+                    "current_swing_mode": CONST_MODE_OFF,
+                    "current_vertical_swing_mode": CONST_VERTICAL_SWING_OFF,
+                    "current_horizontal_swing_mode": CONST_HORIZONTAL_SWING_OFF,
+                }
+            )
 
             if "mode" in setting:
                 # v3 devices use mode
