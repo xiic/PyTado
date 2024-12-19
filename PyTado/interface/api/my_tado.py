@@ -8,7 +8,7 @@ import logging
 
 from typing import Any
 
-from ...logging import Logger
+from ...logger import Logger
 from ...exceptions import TadoNotSupportedException
 from ...http import (
     Action,

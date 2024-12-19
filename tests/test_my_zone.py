@@ -16,7 +16,7 @@ class TadoZoneTestCase(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(False, "foo")
+            "PyTado.http.Http._login", return_value=(1, "foo")
         )
         get_me_patch = mock.patch("PyTado.interface.api.Tado.get_me")
         login_patch.start()

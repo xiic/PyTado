@@ -14,10 +14,14 @@ class TestTadoInterface(unittest.TestCase):
 
     def test_interface_with_tado_api(self):
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(False, "foo")
+            "PyTado.http.Http._login", return_value=(1, "foo")
         )
         login_mock = login_patch.start()
-        self.addCleanup(login_patch.stop)
+        check_x_patch = mock.patch(
+            "PyTado.http.Http._check_x_line_generation", return_value=False
+        )
+        check_x_patch.start()
+        self.addCleanup(check_x_patch.stop)
 
         with mock.patch("PyTado.interface.api.my_tado.Tado.get_me") as mock_it:
             tado_interface = Tado("my@username.com", "mypassword")
@@ -38,10 +42,14 @@ class TestTadoInterface(unittest.TestCase):
 
     def test_interface_with_tadox_api(self):
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(True, "foo")
+            "PyTado.http.Http._login", return_value=(1, "foo")
         )
         login_mock = login_patch.start()
-        self.addCleanup(login_patch.stop)
+        check_x_patch = mock.patch(
+            "PyTado.http.Http._check_x_line_generation", return_value=True
+        )
+        check_x_patch.start()
+        self.addCleanup(check_x_patch.stop)
 
         with mock.patch(
             "PyTado.interface.api.hops_tado.TadoX.get_me"
@@ -56,10 +64,14 @@ class TestTadoInterface(unittest.TestCase):
 
     def test_error_handling_on_api_calls(self):
         login_patch = mock.patch(
-            "PyTado.http.Http._login", return_value=(False, "foo")
+            "PyTado.http.Http._login", return_value=(1, "foo")
         )
-        login_patch.start()
-        self.addCleanup(login_patch.stop)
+        login_mock = login_patch.start()
+        check_x_patch = mock.patch(
+            "PyTado.http.Http._check_x_line_generation", return_value=False
+        )
+        check_x_patch.start()
+        self.addCleanup(check_x_patch.stop)
 
         with mock.patch("PyTado.interface.api.my_tado.Tado.get_me") as mock_it:
             mock_it.side_effect = Exception("API Error")
