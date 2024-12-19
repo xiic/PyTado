@@ -11,6 +11,7 @@ from typing import Any
 
 import requests
 
+from PyTado.const import CLIENT_ID, CLIENT_SECRET
 from PyTado.exceptions import TadoException, TadoWrongCredentialsException
 from PyTado.logger import Logger
 
@@ -251,10 +252,8 @@ class Http:
 
         url = "https://auth.tado.com/oauth/token"
         data = {
-            "client_id": "tado-web-app",
-            "client_secret": (
-                "wZaRN7rpjn3FoNyF5IFuxg9uMzYJcvOoQ8QWiIqS3hfk6gLhVlG57j5YNoZL2Rtc"
-            ),
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
             "grant_type": "refresh_token",
             "scope": "home.user",
             "refresh_token": self._token_refresh,
@@ -275,7 +274,13 @@ class Http:
             },
         )
 
-        self._set_oauth_header(response.json())
+        if response.status_code == 200:
+            self._set_oauth_header(response.json())
+            return
+
+        raise TadoException(
+            f"Unknown error while refreshing token with status code {response.status_code}"
+        )
 
     def _login(self) -> tuple[int, bool, str] | None:
 
