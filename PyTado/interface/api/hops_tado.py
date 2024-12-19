@@ -72,7 +72,7 @@ class TadoX(Tado):
 
         for device in devices:
             request = TadoXRequest()
-            request.command = f"devices/{device["serialNo"]:s}"
+            request.command = "devices/" + device["serialNo"]
             device.update(self._http.request(request))
 
         if "otherDevices" in rooms_and_devices:
