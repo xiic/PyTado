@@ -282,7 +282,7 @@ class Http:
             f"Unknown error while refreshing token with status code {response.status_code}"
         )
 
-    def _login(self) -> tuple[int, bool, str] | None:
+    def _login(self) -> tuple[int, str] | None:
 
         headers = self._headers
         headers["Content-Type"] = "application/json"
