@@ -277,7 +277,7 @@ class Http:
 
         self._set_oauth_header(response.json())
 
-    def _login(self) -> tuple[bool, str] | None:
+    def _login(self) -> tuple[int, str] | None:
 
         headers = self._headers
         headers["Content-Type"] = "application/json"
