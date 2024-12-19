@@ -60,13 +60,13 @@ class TadoZone:
     tado_mode: str | None = None
     overlay_termination_type: str | None = None
     overlay_termination_timestamp: str | None = None
+    default_overlay_termination_type: str | None = None
+    default_overlay_termination_duration: str | None = None
     preparation: bool = False
     open_window: bool = False
     open_window_detected: bool = False
     open_window_attr: dict[str, Any] = dataclasses.field(default_factory=dict)
     precision: float = DEFAULT_TADO_PRECISION
-    default_overlay_termination_type = None
-    default_overlay_termination_duration = None
 
     @property
     def overlay_active(self) -> bool:
