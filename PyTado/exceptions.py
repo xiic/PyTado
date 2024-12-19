@@ -9,10 +9,6 @@ class TadoNotSupportedException(TadoException):
     """Exception to indicate a requested action is not supported by Tado."""
 
 
-class TadoXNotSupportedException(TadoException):
-    """Exception to indicate a requested action is not supported by the Tado X API."""
-
-
 class TadoCredentialsException(TadoException):
     """Exception to indicate something with credentials"""
 

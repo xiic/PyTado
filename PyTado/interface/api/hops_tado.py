@@ -8,7 +8,7 @@ from typing import Any
 
 from .my_tado import Tado, Timetable
 
-from ...logging import Logger
+from ...logger import Logger
 from ...exceptions import TadoNotSupportedException
 from ...http import (
     Action,

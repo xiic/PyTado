@@ -11,8 +11,8 @@ from typing import Any
 
 import requests
 
-from PyTado.exceptions import TadoWrongCredentialsException
-from PyTado.logging import Logger
+from PyTado.exceptions import TadoException, TadoWrongCredentialsException
+from PyTado.logger import Logger
 
 _LOGGER = Logger(__name__)
 
@@ -141,7 +141,8 @@ class Http:
         self._headers = {"Referer": "https://app.tado.com/"}
         self._username = username
         self._password = password
-        self._id, self._x_api, self._token_refresh = self._login()
+        self._id, self._token_refresh = self._login()
+        self._x_api = self._check_x_line_generation()
 
     def _log_response(self, response: requests.Response, *args, **kwargs):
         og_request_method = response.request.method
@@ -311,9 +312,12 @@ class Http:
         if response.status_code == 200:
             refresh_token = self._set_oauth_header(response.json())
             id_ = self._get_id()
-            x_api_ = self._check_x_line_generation()
 
-            return id_, x_api_, refresh_token
+            return id_, refresh_token
+
+        raise TadoException(
+            f"Login failed for unknown reason with status code {response.status_code}"
+        )
 
     def _get_id(self) -> int:
         request = TadoRequest()
