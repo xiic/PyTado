@@ -12,6 +12,7 @@ from ...logger import Logger
 from ...exceptions import TadoNotSupportedException
 from ...http import (
     Action,
+    Domain,
     Http,
     Mode,
     TadoRequest,
@@ -28,7 +29,7 @@ class TadoX(Tado):
 
     Example usage: http = Http('me@somewhere.com', 'mypasswd')
                    t = TadoX(http)
-                   t.get_climate(1) # Get climate, zone 1.
+                   t.get_climate(1) # Get climate, room 1.
     """
 
     def __init__(
@@ -64,14 +65,24 @@ class TadoX(Tado):
         request = TadoXRequest()
         request.command = "roomsAndDevices"
 
-        rooms: list[dict[str, Any]] = self._http.request(request)["rooms"]
+        rooms_and_devices: list[dict[str, Any]] = self._http.request(request)
+        rooms = rooms_and_devices["rooms"]
+
         devices = [device for room in rooms for device in room["devices"]]
+
+        for device in devices:
+            request = TadoXRequest()
+            request.command = f"devices/{device["serialNo"]:s}"
+            device.update(self._http.request(request))
+
+        if "otherDevices" in rooms_and_devices:
+            devices.append(rooms_and_devices["otherDevices"])
 
         return devices
 
     def get_zones(self):
         """
-        Gets zones information.
+        Gets zones (or rooms in Tado X API) information.
         """
 
         request = TadoXRequest()
@@ -136,7 +147,7 @@ class TadoX(Tado):
         """
 
         raise TadoNotSupportedException(
-            "This method is not currently supported by the Tado X API"
+            "Tado X API only support seven days timetable"
         )
 
     def get_schedule(
@@ -154,7 +165,44 @@ class TadoX(Tado):
 
     def set_schedule(self, zone, timetable: Timetable, day, data):
         """
-        Set the schedule for a zone, day is required
+        Set the schedule for a zone, day is not required for Tado X API.
+
+        example data
+        [
+        {
+            "start": "00:00",
+            "end": "07:05",
+            "dayType": "MONDAY",
+            "setting": {
+            "power": "ON",
+            "temperature": {
+                "value": 18
+            }
+            }
+        },
+        {
+            "start": "07:05",
+            "end": "22:05",
+            "dayType": "MONDAY",
+            "setting": {
+            "power": "ON",
+            "temperature": {
+                "value": 22
+            }
+            }
+        },
+        {
+            "start": "22:05",
+            "end": "24:00",
+            "dayType": "MONDAY",
+            "setting": {
+            "power": "ON",
+            "temperature": {
+                "value": 18
+            }
+            }
+        }
+        ]
         """
 
         request = TadoXRequest()
@@ -192,7 +240,7 @@ class TadoX(Tado):
         horizontal_swing=None,
     ):
         """
-        Set current overlay for a zone
+        Set current overlay for a zone, a room in Tado X API.
         """
 
         post_data = {
@@ -223,7 +271,7 @@ class TadoX(Tado):
         """
 
         raise TadoNotSupportedException(
-            "This method is not currently supported by the Tado X API"
+            "Concept of zones is not available by Tado X API, they use rooms"
         )
 
     def get_open_window_detected(self, zone):
@@ -263,9 +311,17 @@ class TadoX(Tado):
         with option to get specific info i.e. cmd='temperatureOffset'
         """
 
-        raise TadoNotSupportedException(
-            "This method is not currently supported by the Tado X API"
-        )
+        if cmd:
+            request = TadoRequest()
+            request.command = cmd
+        else:
+            request = TadoXRequest()
+
+        request.action = Action.GET
+        request.domain = Domain.DEVICES
+        request.device = device_id
+
+        return self._http.request(request)
 
     def set_temp_offset(self, device_id, offset=0, measure="celsius"):
         """
