@@ -10,11 +10,13 @@ from PyTado.const import (
     CONST_HVAC_HEAT,
     CONST_HVAC_IDLE,
     CONST_HVAC_OFF,
-    CONST_LINK_OFFLINE,
+    CONST_CONNECTION_OFFLINE,
     CONST_MODE_HEAT,
     CONST_MODE_OFF,
+    CONST_MODE_SMART_SCHEDULE,
     CONST_VERTICAL_SWING_OFF,
     CONST_HORIZONTAL_SWING_OFF,
+    DEFAULT_TADOX_PRECISION,
 )
 from .my_zone import TadoZone
 
@@ -25,6 +27,8 @@ _LOGGER = logging.getLogger(__name__)
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class TadoXZone(TadoZone):
     """Tado Zone data structure for hops.tado.com (Tado X) API."""
+
+    precision: float = DEFAULT_TADOX_PRECISION
 
     @classmethod
     def from_data(cls, zone_id: int, data: dict[str, Any]) -> Self:
@@ -37,9 +41,9 @@ class TadoXZone(TadoZone):
             sensor_data = data["sensorDataPoints"]
 
             if "insideTemperature" in sensor_data:
-                kwargs["current_temp"] = float(
-                    sensor_data["insideTemperature"]["value"]
-                )
+                inside_temp = sensor_data["insideTemperature"]
+                if "value" in inside_temp:
+                    kwargs["current_temp"] = float(inside_temp["value"])
                 kwargs["current_temp_timestamp"] = None
                 if "precision" in sensor_data["insideTemperature"]:
                     kwargs["precision"] = sensor_data["insideTemperature"][
@@ -123,14 +127,15 @@ class TadoXZone(TadoZone):
                         manual_termination["projectedExpiry"]
                     )
                 else:
+                    kwargs["current_hvac_mode"] = CONST_MODE_SMART_SCHEDULE
                     kwargs["overlay_termination_type"] = None
                     kwargs["overlay_termination_timestamp"] = None
+            else:
+                kwargs["current_hvac_mode"] = CONST_MODE_SMART_SCHEDULE
 
-        # Connection state and availability
-        kwargs["connection"] = data.get("connectionState", {}).get(
-            "value", None
+        kwargs["available"] = (
+            kwargs.get("connection") != CONST_CONNECTION_OFFLINE
         )
-        kwargs["available"] = kwargs.get("link") != CONST_LINK_OFFLINE
 
         # Termination conditions
         if "terminationCondition" in data:
