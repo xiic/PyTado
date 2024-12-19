@@ -25,7 +25,7 @@ class TestHttp(unittest.TestCase):
             "https://auth.tado.com/oauth/token",
             json={
                 "access_token": "value",
-                "expires_in": 1234,
+                "expires_in": 1000,
                 "refresh_token": "another_value",
             },
             status=200,
@@ -33,16 +33,19 @@ class TestHttp(unittest.TestCase):
 
         responses.add(
             responses.GET,
-            "https://my.tado.com/api/v2/homes/1234/",
-            json={"homes": [{"id": 1234}]},
+            "https://my.tado.com/api/v2/me",
+            json=json.loads(common.load_fixture("home_1234/my_api_v2_me.json")),
             status=200,
         )
 
-        # Mock the get me response
         responses.add(
             responses.GET,
-            "https://my.tado.com/api/v2/me",
-            json={"homes": [{"id": 1234}]},
+            "https://my.tado.com/api/v2/homes/1234/",
+            json=json.loads(
+                common.load_fixture(
+                    "home_1234/tadov2.my_api_v2_home_state.json"
+                )
+            ),
             status=200,
         )
 
@@ -102,7 +105,9 @@ class TestHttp(unittest.TestCase):
         responses.replace(
             responses.GET,
             "https://my.tado.com/api/v2/homes/1234/",
-            json=json.loads(common.load_fixture("tadox/homes_response.json")),
+            json=json.loads(
+                common.load_fixture("home_1234/tadox.my_api_v2_home_state.json")
+            ),
             status=200,
         )
 
