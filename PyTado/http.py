@@ -25,6 +25,8 @@ class Endpoint(enum.StrEnum):
     HOPS_API = "https://hops.tado.com/"
     MOBILE = "https://my.tado.com/mobile/1.9/"
     EIQ = "https://energy-insights.tado.com/api/"
+    TARIFF = "https://tariff-experience.tado.com/api/"
+    GENIE = "https://genie.tado.com/api/v2/"
 
 
 class Domain(enum.StrEnum):
