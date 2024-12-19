@@ -1,24 +1,26 @@
 {
-    "id": 14,
-    "name": "Wohnzimmer",
+    "id": 1,
+    "name": "Room 1",
     "sensorDataPoints": {
         "insideTemperature": {
-            "value": 22.19
+            "value": 24.08
         },
         "humidity": {
-            "percentage": 41
+            "percentage": 38
         }
     },
     "setting": {
-        "power": "ON",
-        "temperature": {
-            "value": 22.0
-        }
+        "power": "OFF",
+        "temperature": null
     },
-    "manualControlTermination": null,
+    "manualControlTermination": {
+        "type": "NEXT_TIME_BLOCK",
+        "remainingTimeInSeconds": 4497,
+        "projectedExpiry": "2024-12-19T21:00:00Z"
+    },
     "boostMode": null,
     "heatingPower": {
-        "percentage": 21
+        "percentage": 35
     },
     "connection": {
         "state": "CONNECTED"
