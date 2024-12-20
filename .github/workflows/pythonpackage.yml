@@ -54,7 +54,7 @@ jobs:
         fail_below_min: true
         format: markdown
         hide_branch_rate: false
-        hide_complexity: true
+        hide_complexity: false
         indicators: true
         output: both
         thresholds: '60 80'
@@ -71,7 +71,7 @@ jobs:
 
     # Optionally upload coverage reports as an artifact.
     - name: Upload coverage report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-html-report
         path: coverage_html_report
