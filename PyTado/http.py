@@ -8,6 +8,7 @@ import logging
 import pprint
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import urlencode
 
 import requests
 
@@ -27,6 +28,7 @@ class Endpoint(enum.StrEnum):
     EIQ = "https://energy-insights.tado.com/api/"
     TARIFF = "https://tariff-experience.tado.com/api/"
     GENIE = "https://genie.tado.com/api/v2/"
+    MINDER = "https://minder.tado.com/v1/"
 
 
 class Domain(enum.StrEnum):
@@ -65,6 +67,7 @@ class TadoRequest:
         domain: Domain = Domain.HOME,
         device: int | None = None,
         mode: Mode = Mode.OBJECT,
+        params: dict[str, Any] | None = None,
     ):
         self.endpoint = endpoint
         self.command = command
@@ -73,6 +76,7 @@ class TadoRequest:
         self.domain = domain
         self.device = device
         self.mode = mode
+        self.params = params
 
 
 class TadoXRequest(TadoRequest):
@@ -87,6 +91,7 @@ class TadoXRequest(TadoRequest):
         domain: Domain = Domain.HOME,
         device: int | None = None,
         mode: Mode = Mode.OBJECT,
+        params: dict[str, Any] | None = None,
     ):
         super().__init__(
             endpoint=endpoint,
@@ -96,6 +101,7 @@ class TadoXRequest(TadoRequest):
             domain=domain,
             device=device,
             mode=mode,
+            params=params,
         )
         self._action = action
 
@@ -214,6 +220,8 @@ class Http:
             url = f"{request.endpoint}{request.domain}/{request.device}/{request.command}"
         elif request.domain == Domain.ME:
             url = f"{request.endpoint}{request.domain}"
+        elif request.endpoint == Endpoint.MINDER:
+            url = f"{request.endpoint}{request.domain}/{self.id:d}/{request.command}?{urlencode(request.params)}"
         else:
             url = f"{request.endpoint}{request.domain}/{self._id:d}/{request.command}"
         return url

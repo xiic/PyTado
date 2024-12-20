@@ -79,3 +79,16 @@ class TadoTestCase(unittest.TestCase):
         with mock.patch("PyTado.http.Http.request"):
             with self.assertRaises(Exception):
                 self.tado_client.set_auto()
+
+    def test_get_running_times(self):
+        """Test the get_running_times method."""
+
+        with mock.patch(
+            "PyTado.http.Http.request",
+            return_value=json.loads(common.load_fixture("running_times.json")),
+        ):
+            running_times = self.tado_client.get_running_times("2023-08-01")
+
+            assert self.tado_client._http.request.called
+            assert running_times["lastUpdated"] == "2023-08-05T19:50:21Z"
+            assert running_times["runningTimes"][0]["zones"][0]["id"] == 1
