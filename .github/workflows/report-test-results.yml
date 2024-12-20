@@ -55,10 +55,3 @@ jobs:
 
     - name: Output code coverage results to GitHub step summary
       run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
-
-    # Optionally upload coverage reports as an artifact.
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-html-report
-        path: coverage_html_report
