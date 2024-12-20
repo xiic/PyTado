@@ -621,3 +621,18 @@ class Tado:
         request.payload = {"circuitNumber": heating_circuit}
 
         return self._http.request(request)
+
+    def get_running_times(
+        self, date=datetime.datetime.now().strftime("%Y-%m-%d")
+    ) -> dict:
+        """
+        Get the running times from the Minder API
+        """
+
+        request = TadoRequest()
+        request.command = "runningTimes"
+        request.action = Action.GET
+        request.endpoint = Endpoint.MINDER
+        request.params = {"from": date}
+
+        return self._http.request(request)
