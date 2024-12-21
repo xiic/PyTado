@@ -1,7 +1,7 @@
 # PyTado -- Pythonize your central heating
 
 [![Linting and testing](https://github.com/wmalgadey/PyTado/actions/workflows/lint-and-test-matrix.yml/badge.svg)](https://github.com/wmalgadey/PyTado/actions/workflows/lint-and-test-matrix.yml)
-[![Build and deploy to pypi](https://github.com/wmalgadey/PyTado/actions/workflows/publish-to-pypi.yml/badge.svg)](https://github.com/wmalgadey/PyTado/actions/workflows/publish-to-pypi.yml)
+[![Build and deploy to pypi](https://github.com/wmalgadey/PyTado/actions/workflows/publish-to-pypi.yml/badge.svg?event=release)](https://github.com/wmalgadey/PyTado/actions/workflows/publish-to-pypi.yml)
 [![PyPI version](https://badge.fury.io/py/python-tado.svg)](https://badge.fury.io/py/python-tado)
 
 PyTado is a Python module implementing an interface to the Tado web API. It allows a user to interact with their
