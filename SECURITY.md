@@ -18,7 +18,7 @@ responsibly disclosing vulnerabilities to help keep the project and its users sa
 ### How to Report
 
 - **Email:** [wolfgang@malgadey.de](mailto:wolfgang@malgadey.de)
-  
+
 Please include the following details to help us address the issue promptly:
 
 - A clear description of the vulnerability and its potential impact.
