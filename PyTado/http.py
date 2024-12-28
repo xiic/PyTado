@@ -37,6 +37,7 @@ class Domain(enum.StrEnum):
     HOME = "homes"
     DEVICES = "devices"
     ME = "me"
+    HOME_BY_BRIDGE = "homeByBridge"
 
 
 class Action(enum.StrEnum):
@@ -65,7 +66,7 @@ class TadoRequest:
         action: Action | str = Action.GET,
         payload: dict[str, Any] | None = None,
         domain: Domain = Domain.HOME,
-        device: int | None = None,
+        device: int | str | None = None,
         mode: Mode = Mode.OBJECT,
         params: dict[str, Any] | None = None,
     ) -> None:
@@ -89,7 +90,7 @@ class TadoXRequest(TadoRequest):
         action: Action | str = Action.GET,
         payload: dict[str, Any] | None = None,
         domain: Domain = Domain.HOME,
-        device: int | None = None,
+        device: int | str | None = None,
         mode: Mode = Mode.OBJECT,
         params: dict[str, Any] | None = None,
     ) -> None:
@@ -163,12 +164,18 @@ class Http:
         og_request_url = response.request.url
         og_request_headers = response.request.headers
         response_status = response.status_code
+
+        if response.text is None or response.text == "":
+            response_data = {}
+        else:
+            response_data = response.json()
+
         _LOGGER.debug(
             f"\nRequest:\n\tMethod:{og_request_method}"
             f"\n\tURL: {og_request_url}"
             f"\n\tHeaders: {pprint.pformat(og_request_headers)}"
             f"\nResponse:\n\tStatusCode: {response_status}"
-            f"\n\tData: {response.json()}"
+            f"\n\tData: {response_data}"
         )
 
     def request(self, request: TadoRequest) -> dict[str, Any]:
@@ -181,6 +188,7 @@ class Http:
 
         http_request = requests.Request(method=request.action, url=url, headers=headers, data=data)
         prepped = http_request.prepare()
+        prepped.hooks["response"].append(self._log_response)
 
         retries = _DEFAULT_RETRIES
 
@@ -196,6 +204,7 @@ class Http:
                     _LOGGER.warning("Connection error: %s", e)
                     self._session.close()
                     self._session = requests.Session()
+                    self._session.hooks["response"].append(self._log_response)
                     retries -= 1
                 else:
                     _LOGGER.error(
@@ -203,7 +212,7 @@ class Http:
                         _DEFAULT_RETRIES,
                         e,
                     )
-                    raise TadoException(e)
+                    raise TadoException(e) from e
 
         if response.text is None or response.text == "":
             return {}
@@ -213,19 +222,17 @@ class Http:
     def _configure_url(self, request: TadoRequest) -> str:
         if request.endpoint == Endpoint.MOBILE:
             url = f"{request.endpoint}{request.command}"
-        elif request.domain == Domain.DEVICES:
+        elif request.domain == Domain.DEVICES or request.domain == Domain.HOME_BY_BRIDGE:
             url = f"{request.endpoint}{request.domain}/{request.device}/{request.command}"
         elif request.domain == Domain.ME:
             url = f"{request.endpoint}{request.domain}"
-        elif request.endpoint == Endpoint.MINDER:
-            params = request.params if request.params is not None else {}
-
-            url = (
-                f"{request.endpoint}{request.domain}/{self._id:d}/{request.command}"
-                f"?{urlencode(params)}"
-            )
         else:
             url = f"{request.endpoint}{request.domain}/{self._id:d}/{request.command}"
+
+        if request.params is not None:
+            params = request.params
+            url += f"?{urlencode(params)}"
+
         return url
 
     def _configure_payload(self, headers: dict[str, str], request: TadoRequest) -> bytes:
