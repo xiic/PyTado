@@ -44,9 +44,9 @@ pytest-cov = "*"
 
 [tool.poetry.extras]
 dev = ["pre-commit", "pytype", "types-requests"]
-lint = ["black", "pylint"]
-test = ["responses", "pytest", "pytest-mock", "pytest-cov"]
-all = ["pre-commit", "pytype", "types-requests", "black", "pylint", "responses", "pytest", "pytest-mock", "pytest-cov"]
+lint = ["black>=24.3", "pylint"]
+test = ["responses", "pytest", "pytest-mock", "pytest-socket", "pytest-cov"]
+all = ["pre-commit", "pytype", "types-requests", "black", "pylint", "responses", "pytest", "pytest-mock", "pytest-socket", "pytest-cov"]
 
 [tool.poetry.scripts]
 pytado = "PyTado.__main__:main"
