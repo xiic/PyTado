@@ -30,6 +30,7 @@ the GNU Public Licence version 3, and should therefore not be used where it may 
 cause discomfort and inconvenience to others.
 
 ## Usage
+
 As of the 15th of March 2025, Tado has updated their OAuth2 authentication flow. It will now use the device flow, instead of a username/password flow. This means that the user will have to authenticate the device using a browser, and then enter the code that is displayed on the browser into the terminal.
 
 PyTado handles this as following:
@@ -42,11 +43,45 @@ PyTado handles this as following:
 The `device_verification_url()` will be reset to `None` and the `device_activation_status()` will return `COMPLETED`.
 
 ### Screenshots of the device flow
+
 ![Tado device flow: invoking](/screenshots/tado-device-flow-0.png)
 ![Tado device flow: browser](/screenshots/tado-device-flow-1.png)
 ![Tado device flow: complete](/screenshots/tado-device-flow-2.png)
 
+### How to not authenticate the device again
+
+It is possible to save the refresh token and reuse to skip the next login.
+
+The following code will use the `refresh_token` file to save the refresh-token after login, and load the refresh-token if you create the Tado interface class again.
+
+If the file doesn't exists, the webbrowser is started and the device authentication url is automatically opened. You can activate the device in the browser. When you restart the program, the refresh-token is reused and no webbrowser will be opened.
+
+```python
+import webbrowser   # only needed for direct web browser access
+
+from PyTado.interface.interface import Tado
+
+tado = Tado(token_file_path="/var/tado/refresh_token")
+
+status = tado.device_activation_status()
+
+if status == "PENDING":
+    url = tado.device_verification_url()
+
+    webbrowser.open_new_tab(url)
+
+    tado.device_activation()
+
+    status = tado.device_activation_status()
+
+if status == "COMPLETED":
+    print("Login successful")
+else:
+    print(f"Login status is {status}")
+```
+
 ## Example code
+
 ```python
 """Example client for PyTado"""
 
