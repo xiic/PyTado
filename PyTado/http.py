@@ -318,6 +318,9 @@ class Http:
             raise TadoException(e) from e
 
         if response.text == "":
+            # HTTP 204 No Content typically means success
+            if response.status_code == 204:
+                return {"success": True}
             return {}
 
         if response.status_code not in HTTP_CODES_OK:
